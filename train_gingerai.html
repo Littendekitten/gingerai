@@ -4,236 +4,134 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Train GingerAI</title>
-<script>
-// =======================
-// GingerAI Core Script
-// =======================
-
-window.GingerAI = (function(){
-    const GingerAI = {};
-
-    // -----------------------
-    // Configuration
-    // -----------------------
-    GingerAI.config = {
-        language: 'auto', // 'nl', 'en', or 'auto'
-        fallbackTriggers: [], // wordt gevuld met triggers
-        maxResponseLength: 500, // max chars
-    };
-
-    // -----------------------
-    // Utility Functions
-    // -----------------------
-    GingerAI.utils = {
-        detectLanguage: function(text){
-            const nlWords = ['de', 'het', 'een', 'ik', 'jij', 'hij', 'zij', 'zijn', 'haar', 'en', 'maar'];
-            const enWords = ['the', 'and', 'is', 'it', 'you', 'he', 'she', 'they', 'a', 'an'];
-
-            let nlScore = 0, enScore = 0;
-            const words = text.toLowerCase().split(/\s+/);
-            words.forEach(w => {
-                if(nlWords.includes(w)) nlScore++;
-                if(enWords.includes(w)) enScore++;
-            });
-
-            if(nlScore > enScore) return 'nl';
-            if(enScore > nlScore) return 'en';
-            return 'en'; // default English
-        },
-
-        truncate: function(text, maxLength){
-            if(text.length > maxLength) return text.slice(0,maxLength) + '...';
-            return text;
-        },
-
-        randomChoice: function(arr){
-            return arr[Math.floor(Math.random()*arr.length)];
-        },
-
-        capitalize: function(str){
-            if(!str) return '';
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        },
-
-        shuffleArray: function(arr){
-            for(let i = arr.length - 1; i > 0; i--){
-                const j = Math.floor(Math.random()*(i+1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-    };
-
-    // -----------------------
-    // Mega Trigger Database (~400 lines condensed)
-    // -----------------------
-    GingerAI.triggers = [
-        // --- Games ---
-        {pattern: /game|gamen|play/i, responses: [
-            "I love playing games! What's your favorite?",
-            "Welke game speel je het liefst?",
-            "Games can really make time fly!"
-        ]},
-        {pattern: /minecraft/i, responses: [
-            "Minecraft is so creative, I could build forever!",
-            "Speel jij vaak in survival of creative mode?",
-            "Blocks, mobs, and adventures await!"
-        ]},
-        {pattern: /roblox/i, responses: [
-            "Roblox has so many user-created worlds!",
-            "Speel je liever obbies of roleplay games?",
-            "I love exploring different Roblox games."
-        ]},
-
-        // --- Music ---
-        {pattern: /music|muziek|song/i, responses: [
-            "Music sets the mood, what's your favorite genre?",
-            "Luister je vaak naar pop, rock of hiphop?",
-            "I could talk about music all day!"
-        ]},
-        {pattern: /spotify/i, responses: [
-            "Spotify has endless playlists for every mood.",
-            "What's your current favorite track?",
-            "Gebruik je vaak Discover Weekly?"
-        ]},
-
-        // --- School/Study ---
-        {pattern: /school|studies|studeren/i, responses: [
-            "School can be tough, but learning is fun!",
-            "Welke vakken vind je het leukst?",
-            "Studying is easier with good planning."
-        ]},
-
-        // --- Weather ---
-        {pattern: /weather|weer/i, responses: [
-            "I hope the sun is shining where you are!",
-            "Welke temperatuur is het nu bij jou?",
-            "Rain or shine, every weather has its charm."
-        ]},
-
-        // --- Movies/TV ---
-        {pattern: /movie|film|series/i, responses: [
-            "I love watching movies! What's your favorite?",
-            "Heb je laatst een leuke film gezien?",
-            "Movies can take you to another world."
-        ]},
-
-        // --- Travel ---
-        {pattern: /travel|reizen/i, responses: [
-            "Travelling expands your mind.",
-            "Waar zou je graag eens naartoe willen?",
-            "Exploring new places is so exciting!"
-        ]},
-
-        // --- Pets ---
-        {pattern: /dog|cat|hond|kat/i, responses: [
-            "Pets bring so much joy!",
-            "Heb je huisdieren?",
-            "I love talking about animals."
-        ]},
-
-        // --- Sports ---
-        {pattern: /sport|voetbal|basketball/i, responses: [
-            "Sports keep you active and healthy!",
-            "Speel je zelf een sport?",
-            "I enjoy watching big matches."
-        ]},
-
-        // --- Books ---
-        {pattern: /book|boek|reading/i, responses: [
-            "Reading is a window to new worlds.",
-            "Wat is je favoriete boek?",
-            "I always have a book on my reading list."
-        ]},
-
-        // --- Holidays ---
-        {pattern: /holiday|vakantie/i, responses: [
-            "Holidays are perfect for relaxing.",
-            "Waar ga je graag naartoe op vakantie?",
-            "I love planning fun trips!"
-        ]},
-
-        // --- Love/Advice ---
-        {pattern: /love|liefde/i, responses: [
-            "Love makes the world go round!",
-            "Ben je verliefd op iemand?",
-            "I can give you advice if you want."
-        ]},
-
-        {pattern: /advice|advies/i, responses: [
-            "Advice is best when personalized.",
-            "Wat voor advies heb je nodig?",
-            "I can try to help with tips."
-        ]}
-        // ... meer triggers kunnen hier toegevoegd worden om richting 400 regels te komen
-    ];
-
-    // -----------------------
-    // API Hooks (stub functions)
-    // -----------------------
-    GingerAI.api = {
-        wiki: async function(query){
-            // Placeholder: call Wikipedia API
-            return `Wikipedia info for "${query}" (API not integrated yet).`;
-        },
-        weather: async function(location){
-            return `Current weather in ${location}: Sunny 25°C (dummy).`;
-        },
-        movies: async function(title){
-            return `Movie info for "${title}": Genre: Action, Rating: 7.8 (dummy).`;
-        }
-    };
-
-    // -----------------------
-    // Sentence Generator
-    // -----------------------
-    GingerAI.generateResponse = async function(input){
-        let lang = GingerAI.config.language === 'auto' ? GingerAI.utils.detectLanguage(input) : GingerAI.config.language;
-
-        // API triggers first
-        if(/wiki|wikipedia/i.test(input)){
-            let query = input.replace(/wiki|wikipedia/i,'').trim();
-            return await GingerAI.api.wiki(query);
-        }
-        if(/weather|weer/i.test(input)){
-            let locMatch = input.match(/in (\w+)/i);
-            let location = locMatch ? locMatch[1] : 'your city';
-            return await GingerAI.api.weather(location);
-        }
-        if(/movie|film/i.test(input)){
-            let title = input.replace(/movie|film/i,'').trim();
-            return await GingerAI.api.movies(title);
-        }
-
-        // Check triggers
-        for(let t of GingerAI.triggers){
-            if(t.pattern.test(input)){
-                return GingerAI.utils.randomChoice(t.responses);
-            }
-        }
-
-        // Default fallback
-        return GingerAI.utils.randomChoice([
-            "Sorry, I didn't understand that. Could you rephrase?",
-            "Ik begrijp het niet helemaal, kun je het anders zeggen?",
-            "Hmm, I'm not sure about that."
-        ]);
-    };
-
-    // -----------------------
-    // Public Ask Function
-    // -----------------------
-    GingerAI.ask = async function(input){
-        const response = await GingerAI.generateResponse(input);
-        return GingerAI.utils.truncate(response, GingerAI.config.maxResponseLength);
-    };
-
-    return GingerAI;
-})();
-</script>
+<style>
+body { font-family: Arial, sans-serif; background: #f0f0f0; color: #333; }
+.container { max-width: 800px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+h1 { text-align: center; }
+textarea { width: 100%; height: 100px; margin-bottom: 10px; padding: 10px; font-size: 16px; }
+button { padding: 10px 20px; font-size: 16px; cursor: pointer; border-radius: 5px; border: none; background: #4CAF50; color: white; }
+.output { margin-top: 20px; padding: 10px; background: #e0e0e0; border-radius: 5px; min-height: 50px; white-space: pre-wrap; }
+</style>
 </head>
 <body>
+
+<div class="container">
 <h1>Train GingerAI</h1>
-<p>This script runs in the background and provides the AI logic for your UI.</p>
+<textarea id="userInput" placeholder="Type a message..."></textarea>
+<button id="sendBtn">Send</button>
+<div class="output" id="aiOutput">GingerAI ready...</div>
+</div>
+
+<script>
+// ----------------------------
+// TRIGGER DATABASE (voorbeeld, uitbreidbaar)
+// ----------------------------
+const triggers = [
+    {input: /hello|hi|hey/i, response: "Hello there! How can I help you today?"},
+    {input: /hallo|hoi/i, response: "Hoi! Hoe gaat het?"},
+    {input: /weather|weer/i, response: "I can't check live weather yet, but it's always sunny in code!"},
+    {input: /name/i, response: "I'm GingerAI, your friendly assistant."},
+    {input: /love|liefde/i, response: "Love is a complex thing! Make sure to follow your heart."},
+    {input: /game|games/i, response: "I love games! What's your favorite game?"},
+    {input: /movie|film/i, response: "I can't watch movies yet, but I know many titles. Ask me about one!"}
+];
+
+// ----------------------------
+// LANGUAGE DETECTION
+// ----------------------------
+function detectLanguage(text){
+    const nlWords = ["hallo", "hoi", "dank", "alsjeblieft", "liefde", "weer"];
+    let nlCount = nlWords.filter(w => text.toLowerCase().includes(w)).length;
+    return nlCount > 0 ? "nl" : "en";
+}
+
+// ----------------------------
+// API HOOK STRUCTURE (voorbeeld, kan uitgebreid worden)
+// ----------------------------
+async function fetchWikipedia(query){
+    try {
+        const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+        const res = await fetch(url);
+        if(!res.ok) return null;
+        const data = await res.json();
+        return data.extract || null;
+    } catch(e) { return null; }
+}
+
+async function fetchWeather(city){
+    // Placeholder: geen echte API key, structuur alleen
+    return `Weather for ${city} is sunny (dummy data).`;
+}
+
+// ----------------------------
+// SMART RESPONSE GENERATION
+// ----------------------------
+async function generateResponse(message){
+    // Eerst triggers checken
+    for(const t of triggers){
+        if(t.input.test(message)){
+            return t.response;
+        }
+    }
+
+    // Check voor Wikipedia queries
+    if(/who|what|where|wie|wat|waar/i.test(message)){
+        const lang = detectLanguage(message);
+        const query = message.replace(/(who|what|where|wie|wat|waar)/gi, "").trim();
+        if(query.length > 0){
+            const wikiResult = await fetchWikipedia(query);
+            if(wikiResult) return wikiResult;
+        }
+    }
+
+    // Check voor weer queries
+    if(/weather|weer/i.test(message)){
+        const cityMatch = message.match(/in (\w+)/i);
+        const city = cityMatch ? cityMatch[1] : "your city";
+        return await fetchWeather(city);
+    }
+
+    // Fallback met taal-specifiek antwoord
+    return detectLanguage(message) === "nl" 
+        ? "Sorry, ik weet daar niet echt iets op te zeggen." 
+        : "Sorry, I don't know how to respond to that.";
+}
+
+// ----------------------------
+// EXPOSE GINGERAI OBJECT
+// ----------------------------
+window.GingerAI = {
+    ask: function(message){
+        return new Promise(async (resolve) => {
+            // kleine vertraging voor realisme
+            const response = await generateResponse(message);
+            resolve(response);
+        });
+    }
+};
+
+// ----------------------------
+// UI HANDLER (optioneel, kan index.html apart doen)
+// ----------------------------
+const sendBtn = document.getElementById("sendBtn");
+const userInput = document.getElementById("userInput");
+const aiOutput = document.getElementById("aiOutput");
+
+sendBtn.addEventListener("click", async () => {
+    const msg = userInput.value.trim();
+    if(!msg) return;
+    aiOutput.textContent = "GingerAI is thinking...";
+    const response = await window.GingerAI.ask(msg);
+    aiOutput.textContent = response;
+});
+
+// Enter key support
+userInput.addEventListener("keydown", async (e) => {
+    if(e.key === "Enter" && !e.shiftKey){
+        e.preventDefault();
+        sendBtn.click();
+    }
+});
+</script>
 </body>
 </html>
