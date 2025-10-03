@@ -3,13 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <title>GingerAI Chat</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Inhoud van style.css */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 30px;
+        }
+
+        #chatBox {
+            border: 1px solid #ccc;
+            padding: 10px;
+            width: 500px;
+            height: 400px;
+            overflow-y: auto;
+            background: #f9f9f9;
+        }
+
+        input {
+            width: 400px;
+            padding: 5px;
+        }
+
+        button {
+            width: 80px;
+            padding: 5px;
+        }
+
+        p {
+            margin: 5px 0;
+        }
+    </style>
 </head>
 <body>
     <h1>Chat met GingerAI</h1>
     <div id="chatBox"></div>
     <input id="userInput" type="text" placeholder="Typ hier..." onkeydown="if(event.key==='Enter'){sendMessage()}">
     <button onclick="sendMessage()">Verstuur</button>
-    <script src="script.js"></script>
+
+    <script>
+        // Inhoud van script.js
+        const chatBox = document.getElementById("chatBox");
+
+        // Simpele GingerAI logica volledig in JS
+        function sendMessage() {
+            const userInput = document.getElementById("userInput");
+            const text = userInput.value.trim();
+            if(!text) return;
+
+            addMessage("Jij", text);
+
+            const reply = generateReply(text);
+            // Scroll naar beneden na het versturen van het bericht, zodat de gebruiker het bericht ziet.
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // setTimeout is nu geplaatst nadat de gebruiker zijn/haar bericht verstuurt heeft
+            // en de scroll-positie gecorrigeerd is, om te voorkomen dat de scroll
+            // door de setTimeout gereset wordt.
+            setTimeout(() => {
+                addMessage("GingerAI", reply);
+                // Scroll opnieuw naar beneden wanneer GingerAI reageert
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }, 300);
+
+            userInput.value = "";
+        }
+
+        function addMessage(sender, text) {
+            const p = document.createElement("p");
+            p.innerHTML = `<b>${sender}:</b> ${text}`;
+            chatBox.appendChild(p);
+        }
+
+        // Echte AI kan hier later vervangen worden door TF.js model
+        function generateReply(msg) {
+            msg = msg.toLowerCase();
+
+            if(msg.includes("hallo") || msg.includes("hoi")) return "Hallo! Ik ben GingerAI!";
+            if(msg.includes("hoe gaat")) return "Met mij gaat het goed! En met jou?";
+            if(msg.includes("naam")) return "Ik heet GingerAI!";
+            if(msg.includes("dag") || msg.includes("tot ziens")) return "Tot ziens! Fijne dag!";
+            if(msg.includes("leuk")) return "Leuk dat je dat zegt!";
+            
+            // fallback
+            return "Sorry, dat begrijp ik nog niet helemaal.";
+        }
+    </script>
 </body>
 </html>
