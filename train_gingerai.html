@@ -5,8 +5,8 @@
   <title>Train GingerAI</title>
   <style>
     body { font-family: Arial, sans-serif; margin: 30px; }
-    #chatBox { border: 1px solid #ccc; padding: 10px; width: 500px; height: 400px; overflow-y: auto; background: #f9f9f9; }
-    input { width: 400px; padding: 5px; }
+    #chatBox { border: 1px solid #ccc; padding: 10px; width: 600px; height: 450px; overflow-y: auto; background: #f9f9f9; }
+    input { width: 500px; padding: 5px; }
     button { width: 80px; padding: 5px; }
     p { margin: 5px 0; }
   </style>
@@ -20,294 +20,314 @@
   <script>
     const chatBox = document.getElementById("chatBox");
 
-    // Mega dataset NL + EN
-   const datasetNL = {
-  greeting: [
-    ["hallo","Hallo! Hoe gaat het?"],
-    ["hoi","Hoi!"],
-    ["hey","Hey daar!"],
-    ["goedemorgen","Goedemorgen! Klaar voor een nieuwe dag?"],
-    ["goedenavond","Goedenavond! Hoe was je dag?"],
-    ["yo","Yo! Wat leuk dat je er bent!"],
-    ["dag","Dag! Hoe is het?"],
-    ["haai","Haai! Alles goed?"],
-    ["hé","Hé! Leuk je te zien!"],
-    ["hoi hoi","Hoi hoi!"]
-  ],
-  status: [
-    ["hoe gaat","Met mij gaat het super! En met jou?"],
-    ["alles goed","Ja hoor, alles goed hier!"],
-    ["druk","Druk druk druk… maar gezellig!"],
-    ["moe","Rust maar even uit, dat helpt."],
-    ["verveling","Misschien kan je iets leuks doen!"],
-    ["blij","Fijn om te horen! 😄"],
-    ["verdrietig","Het komt wel goed, praat erover!"],
-    ["boos","Probeer rustig te blijven 😡"],
-    ["oké","Top!"],
-    ["niet zo goed","Dat spijt me, hopelijk wordt het beter."],
-    ["hoe gaat het met je","Goed, dank je! En met jou?"],
-    ["hoe is het","Alles prima!"]
-  ],
-  food: [
-    ["pizza","Pizza is heerlijk!"],
-    ["hamburger","Hamburgers zijn ook lekker!"],
-    ["frieten","Frieten zijn altijd een goed idee!"],
-    ["eten","Ik hou van virtueel eten."],
-    ["koffie","Koffie houdt je wakker!"],
-    ["cola","Cola is lekker zoet."],
-    ["chocolade","Chocolade maakt alles beter!"],
-    ["ijs","IJs is zo lekker zomers!"],
-    ["salade","Gezond en lekker!"],
-    ["fruit","Fruit is goed voor je gezondheid!"],
-    ["brood","Brood is altijd goed!"],
-    ["pasta","Pasta is klassiek en lekker!"],
-    ["soep","Soep verwarmt je hart!"],
-    ["vis","Vis is gezond!"]
-  ],
-  games: [
-    ["minecraft","Minecraft is super leuk!"],
-    ["roblox","Roblox heeft zoveel mogelijkheden!"],
-    ["fortnite","Fortnite is populair bij veel gamers!"],
-    ["videogames","Games zijn leuk! Welke speel jij?"],
-    ["pokémon","Pokémon is tijdloos!"],
-    ["call of duty","CoD is spannend!"],
-    ["league of legends","LoL is uitdagend!"],
-    ["among us","Among Us is grappig met vrienden!"],
-    ["fortnite battle royale","Battle Royale is cool!"],
-    ["game","Welke game speel jij graag?"],
-    ["gamen","Gamen is tof!"]
-  ],
-  music: [
-    ["muziek","Muziek maakt iedereen blij! Wat luister jij graag?"],
-    ["liedje","Zing een liedje of luister een liedje!"],
-    ["song","Wat is je favoriete song?"],
-    ["rap","Rap is cool!"],
-    ["rock","Rockmuziek is sterk!"],
-    ["pop","Popmuziek maakt vrolijk!"],
-    ["klassiek","Klassieke muziek kan rustgevend zijn."],
-    ["jazz","Jazz is soepel en relax!"],
-    ["edm","EDM laat je dansen!"],
-    ["metal","Metal is krachtig!"],
-    ["instrument","Speel je een instrument?"],
-    ["gitaar","Gitaarmuziek is leuk!"],
-    ["piano","Piano klinkt mooi!"]
-  ],
-  school: [
-    ["school","School kan soms saai zijn, maar leren is belangrijk!"],
-    ["huiswerk","Huiswerk kan lastig zijn, maar helpt je groeien."],
-    ["toets","Hopelijk maak je een goede toets!"],
-    ["vak","Wat is je lievelingsvak?"],
-    ["leraar","Heb je een leuke leraar?"],
-    ["student","Student zijn kan stressvol zijn."],
-    ["college","College is leerzaam!"],
-    ["universiteit","Universiteit is uitdagend."],
-    ["klas","Hoe is je klas?"],
-    ["examens","Succes met je examens!"],
-    ["leren","Leren is belangrijk!"],
-    ["studie","Studeren kan soms saai zijn."]
-  ],
-  hobby: [
-    ["voetbal","Voetbal is leuk om te spelen!"],
-    ["basketbal","Basketbal houdt je actief!"],
-    ["muziek maken","Muziek maken is creatief!"],
-    ["zingen","Zingen maakt vrolijk!"],
-    ["schilderen","Schilderen is ontspannend."],
-    ["tekenen","Tekenen is creatief!"],
-    ["dansen","Dansen houdt je fit!"],
-    ["fotografie","Fotografie is mooi om momenten vast te leggen."],
-    ["programmeren","Programmeren is handig en leuk!"],
-    ["lezen","Lezen verrijkt je kennis!"],
-    ["knutselen","Knutselen is leuk en creatief!"],
-    ["sport","Sport houdt je gezond!"],
-    ["wandelen","Wandelen ontspant je geest."]
-  ],
-  emotions: [
-    ["blij","Fijn dat je blij bent! 😊"],
-    ["verdrietig","Het komt goed, praat erover!"],
-    ["boos","Probeer rustig te blijven 😡"],
-    ["moe","Rust is belangrijk!"],
-    ["opgewonden","Leuk! Waar ben je enthousiast over?"],
-    ["bang","Het is oké om bang te zijn."],
-    ["nerveus","Adem diep in, het komt goed."],
-    ["ontspannen","Blijf ontspannen 😌"],
-    ["verliefd","Ahh, liefde is mooi! ❤️"],
-    ["teleurgesteld","Het spijt me dat je teleurgesteld bent."],
-    ["blijheid","Blij zijn voelt fijn!"],
-    ["frustratie","Het is normaal om soms gefrustreerd te zijn."]
-  ],
-  jokes: [
-    ["vertel een grap","Waarom kan een skelet niet liegen? Omdat je er zo doorheen kijkt! 💀😂"],
-    ["grapje","Haha, hier is een mop: Waarom stak de kip de weg over?"],
-    ["lol","😂😂😂"],
-    ["haha","Dat was grappig!"],
-    ["mop","Ken je deze mop? Een banaan en een tomaat lopen..."],
-    ["lolcat","Waarom kan een kat niet typen? Omdat hij muizenvingers heeft! 🐱"]
-  ],
-  compliment: [
-    ["goed gedaan","Dankjewel!"],
-    ["leuk","Leuk dat je dat zegt!"],
-    ["geweldig","Geweldig! 😃"],
-    ["fantastisch","Fantastisch!"],
-    ["tof","Tof!"],
-    ["chill","Chill! 👍"],
-    ["mooi","Wat mooi dat je dat zegt!"],
-    ["slim","Slim van je!"]
-  ],
-  bye: [
-    ["doei","Doei! Tot de volgende keer!"],
-    ["tot ziens","Tot ziens! 👋"],
-    ["dag","Dag!"],
-    ["later","Later!"],
-    ["ik ga weg","Oké, tot later!"],
-    ["slaap lekker","Slaap lekker! 😴"]
-  ]
-};
+    // --------------------------
+    // Mega dataset Nederlands
+    // --------------------------
+    const datasetNL = {
+      greeting: [
+        ["hallo","Hallo! Hoe gaat het?"],
+        ["hoi","Hoi!"],
+        ["hey","Hey daar!"],
+        ["goedemorgen","Goedemorgen! Klaar voor een nieuwe dag?"],
+        ["goedenavond","Goedenavond! Hoe was je dag?"],
+        ["yo","Yo! Wat leuk dat je er bent!"],
+        ["dag","Dag! Hoe is het?"],
+        ["haai","Haai! Alles goed?"],
+        ["hé","Hé! Leuk je te zien!"],
+        ["hoi hoi","Hoi hoi!"]
+      ],
+      status: [
+        ["hoe gaat","Met mij gaat het super! En met jou?"],
+        ["alles goed","Ja hoor, alles goed hier!"],
+        ["druk","Druk druk druk… maar gezellig!"],
+        ["moe","Rust maar even uit, dat helpt."],
+        ["verveling","Misschien kan je iets leuks doen!"],
+        ["blij","Fijn om te horen! 😄"],
+        ["verdrietig","Het komt wel goed, praat erover!"],
+        ["boos","Probeer rustig te blijven 😡"],
+        ["oké","Top!"],
+        ["niet zo goed","Dat spijt me, hopelijk wordt het beter."],
+        ["hoe gaat het met je","Goed, dank je! En met jou?"],
+        ["hoe is het","Alles prima!"],
+        ["alles prima","Top!"],
+        ["niet best","Oei, hopelijk wordt het beter!"]
+      ],
+      food: [
+        ["pizza","Pizza is heerlijk!"],
+        ["hamburger","Hamburgers zijn ook lekker!"],
+        ["frieten","Frieten zijn altijd een goed idee!"],
+        ["eten","Ik hou van virtueel eten."],
+        ["koffie","Koffie houdt je wakker!"],
+        ["cola","Cola is lekker zoet."],
+        ["chocolade","Chocolade maakt alles beter!"],
+        ["ijs","IJs is zo lekker zomers!"],
+        ["salade","Gezond en lekker!"],
+        ["fruit","Fruit is goed voor je gezondheid!"],
+        ["brood","Brood is altijd goed!"],
+        ["pasta","Pasta is klassiek en lekker!"],
+        ["soep","Soep verwarmt je hart!"],
+        ["vis","Vis is gezond!"],
+        ["groente","Groenten zijn belangrijk!"],
+        ["snack","Soms mag een snack best."]
+      ],
+      games: [
+        ["minecraft","Minecraft is super leuk!"],
+        ["roblox","Roblox heeft zoveel mogelijkheden!"],
+        ["fortnite","Fortnite is populair bij veel gamers!"],
+        ["videogames","Games zijn leuk! Welke speel jij?"],
+        ["pokémon","Pokémon is tijdloos!"],
+        ["call of duty","CoD is spannend!"],
+        ["league of legends","LoL is uitdagend!"],
+        ["among us","Among Us is grappig met vrienden!"],
+        ["fortnite battle royale","Battle Royale is cool!"],
+        ["game","Welke game speel jij graag?"],
+        ["gamen","Gamen is tof!"],
+        ["super mario","Super Mario blijft leuk!"],
+        ["zelda","Zelda avonturen zijn episch!"],
+        ["animal crossing","Animal Crossing is chill!"]
+      ],
+      music: [
+        ["muziek","Muziek maakt iedereen blij! Wat luister jij graag?"],
+        ["liedje","Zing een liedje of luister een liedje!"],
+        ["song","Wat is je favoriete song?"],
+        ["rap","Rap is cool!"],
+        ["rock","Rockmuziek is sterk!"],
+        ["pop","Popmuziek maakt vrolijk!"],
+        ["klassiek","Klassieke muziek kan rustgevend zijn."],
+        ["jazz","Jazz is soepel en relax!"],
+        ["edm","EDM laat je dansen!"],
+        ["metal","Metal is krachtig!"],
+        ["instrument","Speel je een instrument?"],
+        ["gitaar","Gitaarmuziek is leuk!"],
+        ["piano","Piano klinkt mooi!"],
+        ["drums","Drums maken ritme!"],
+        ["vocalen","Zingen is magisch!"]
+      ],
+      school: [
+        ["school","School kan soms saai zijn, maar leren is belangrijk!"],
+        ["huiswerk","Huiswerk kan lastig zijn, maar helpt je groeien."],
+        ["toets","Hopelijk maak je een goede toets!"],
+        ["vak","Wat is je lievelingsvak?"],
+        ["leraar","Heb je een leuke leraar?"],
+        ["student","Student zijn kan stressvol zijn."],
+        ["college","College is leerzaam."],
+        ["universiteit","Universiteit is uitdagend."],
+        ["klas","Hoe is je klas?"],
+        ["examens","Succes met je examens!"],
+        ["leren","Leren is belangrijk!"],
+        ["studie","Studeren kan soms saai zijn."]
+      ],
+      hobby: [
+        ["voetbal","Voetbal is leuk om te spelen!"],
+        ["basketbal","Basketbal houdt je actief!"],
+        ["muziek maken","Muziek maken is creatief!"],
+        ["zingen","Zingen maakt vrolijk!"],
+        ["schilderen","Schilderen is ontspannend."],
+        ["tekenen","Tekenen is creatief!"],
+        ["dansen","Dansen houdt je fit!"],
+        ["fotografie","Fotografie is mooi om momenten vast te leggen."],
+        ["programmeren","Programmeren is handig en leuk!"],
+        ["lezen","Lezen verrijkt je kennis!"],
+        ["knutselen","Knutselen is leuk en creatief!"],
+        ["sport","Sport houdt je gezond!"],
+        ["wandelen","Wandelen ontspant je geest."],
+        ["hobby","Welke hobby heb jij?"],
+        ["collecties","Verzamel jij iets?"]
+      ],
+      emotions: [
+        ["blij","Fijn dat je blij bent! 😊"],
+        ["verdrietig","Het komt goed, praat erover!"],
+        ["boos","Probeer rustig te blijven 😡"],
+        ["moe","Rust is belangrijk!"],
+        ["opgewonden","Leuk! Waar ben je enthousiast over?"],
+        ["bang","Het is oké om bang te zijn."],
+        ["nerveus","Adem diep in, het komt goed."],
+        ["ontspannen","Blijf ontspannen 😌"],
+        ["verliefd","Ahh, liefde is mooi! ❤️"],
+        ["teleurgesteld","Het spijt me dat je teleurgesteld bent."],
+        ["blijheid","Blij zijn voelt fijn!"],
+        ["frustratie","Het is normaal om soms gefrustreerd te zijn."]
+      ],
+      jokes: [
+        ["vertel een grap","Waarom kan een skelet niet liegen? Omdat je er zo doorheen kijkt! 💀😂"],
+        ["grapje","Haha, hier is een mop: Waarom stak de kip de weg over?"],
+        ["lol","😂😂😂"],
+        ["haha","Dat was grappig!"],
+        ["mop","Ken je deze mop? Een banaan en een tomaat lopen..."],
+        ["lolcat","Waarom kan een kat niet typen? Omdat hij muizenvingers heeft! 🐱"]
+      ],
+      compliment: [
+        ["goed gedaan","Dankjewel!"],
+        ["leuk","Leuk dat je dat zegt!"],
+        ["geweldig","Geweldig! 😃"],
+        ["fantastisch","Fantastisch!"],
+        ["tof","Tof!"],
+        ["chill","Chill! 👍"],
+        ["mooi","Wat mooi dat je dat zegt!"],
+        ["slim","Slim van je!"],
+        ["fantastisch werk","Fantastisch werk!"],
+        ["geweldig gedaan","Geweldig gedaan!"]
+      ],
+      bye: [
+        ["doei","Doei! Tot de volgende keer!"],
+        ["tot ziens","Tot ziens! 👋"],
+        ["dag","Dag!"],
+        ["later","Later!"],
+        ["ik ga weg","Oké, tot later!"],
+        ["slaap lekker","Slaap lekker! 😴"]
+      ]
+    };
 
-const datasetEN = {
-  greeting: [
-    ["hi","Hey! How are you?"],
-    ["hello","Hello there!"],
-    ["hey","Hey there!"],
-    ["good morning","Good morning! Ready for a new day?"],
-    ["good evening","Good evening! How was your day?"],
-    ["yo","Yo! Great to see you!"],
-    ["greetings","Greetings!"],
-    ["morning","Morning!"],
-    ["evening","Evening!"],
-    ["sup","Sup! How’s it going?"],
-    ["hiya","Hiya!"],
-    ["hey hey","Hey hey!"]
-  ],
-  status: [
-    ["how are you","I’m doing great! And you?"],
-    ["i’m fine","Glad to hear that!"],
-    ["not bad","Not bad at all!"],
-    ["tired","Take some rest, you’ll feel better!"],
-    ["bored","Maybe try something fun?"],
-    ["happy","Great! Keep smiling!"],
-    ["sad","I’m sorry to hear that."],
-    ["angry","Take a deep breath, calm down."],
-    ["ok","Alright!"],
-    ["so so","So so… hope it improves!"],
-    ["how’s it going","Everything’s fine! How about you?"],
-    ["doing well","Good to hear that!"]
-  ],
-  food: [
-    ["pizza","Pizza is delicious!"],
-    ["burger","Burgers are awesome!"],
-    ["fries","Fries are always a good idea!"],
-    ["food","I love virtual food!"],
-    ["coffee","Coffee keeps you awake!"],
-    ["soda","Soda is sweet and refreshing."],
-    ["chocolate","Chocolate makes everything better!"],
-    ["ice cream","Ice cream is perfect in summer!"],
-    ["salad","Healthy and tasty!"],
-    ["fruit","Fruit is good for you!"],
-    ["bread","Bread is always good!"],
-    ["pasta","Pasta is classic and yummy!"],
-    ["soup","Soup warms your heart!"],
-    ["fish","Fish is healthy!"],
-    ["tea","Tea can be relaxing!"]
-  ],
-  games: [
-    ["minecraft","Minecraft is awesome!"],
-    ["roblox","Roblox is full of creativity!"],
-    ["fortnite","Fortnite is popular!"],
-    ["video games","Games are fun! Which do you play?"],
-    ["pokemon","Pokemon is timeless!"],
-    ["call of duty","CoD is exciting!"],
-    ["league of legends","LoL is challenging!"],
-    ["among us","Among Us is funny with friends!"],
-    ["game","Which game do you like?"],
-    ["gaming","Gaming is fun!"],
-    ["fortnite battle royale","Battle Royale is cool!"]
-  ],
-  music: [
-    ["music","Music makes everyone happy! What do you listen to?"],
-    ["song","Sing or listen to a song!"],
-    ["rap","Rap is cool!"],
-    ["rock","Rock music is strong!"],
-    ["pop","Pop music makes people cheerful!"],
-    ["classical","Classical music is relaxing."],
-    ["jazz","Jazz is smooth and chill!"],
-    ["edm","EDM makes you dance!"],
-    ["metal","Metal is powerful!"],
-    ["instrument","Do you play an instrument?"],
-    ["guitar","Guitar music is fun!"],
-    ["piano","Piano sounds beautiful!"],
-    ["singing","Singing is joyful!"]
-  ],
-  school: [
-    ["school","School is important, even if sometimes boring."],
-    ["homework","Homework can be hard, but it helps you learn."],
-    ["exam","Good luck with your exam!"],
-    ["class","How is your class?"],
-    ["teacher","Do you have a nice teacher?"],
-    ["subject","What’s your favorite subject?"],
-    ["college","College is challenging!"],
-    ["university","University can be tough but fun!"],
-    ["study","Studying helps you grow."],
-    ["learning","Learning is important!"]
-  ],
-  hobby: [
-    ["soccer","Soccer is fun!"],
-    ["basketball","Basketball keeps you active!"],
-    ["music","Making music is creative!"],
-    ["singing","Singing makes you happy!"],
-    ["painting","Painting is relaxing."],
-    ["drawing","Drawing is creative!"],
-    ["dancing","Dancing keeps you fit!"],
-    ["photography","Photography captures moments."],
-    ["programming","Programming is fun and useful!"],
-    ["reading","Reading enriches your mind!"],
-    ["crafting","Crafting is fun and creative!"],
-    ["sports","Sports keep you healthy!"],
-    ["walking","Walking relaxes your mind."]
-  ],
-  emotions: [
-    ["happy","Glad to hear that! 😊"],
-    ["sad","I’m sorry to hear that."],
-    ["angry","Calm down, take a breath."],
-    ["tired","Rest a bit, you’ll feel better."],
-    ["excited","That’s exciting! Tell me more!"],
-    ["scared","It’s okay to be scared."],
-    ["nervous","Take deep breaths, it’s okay."],
-    ["relaxed","Stay calm and relaxed."],
-    ["in love","Love is wonderful! ❤️"],
-    ["disappointed","That’s disappointing, I understand."],
-    ["joyful","Being joyful feels great!"],
-    ["frustrated","It’s normal to be frustrated sometimes."]
-  ],
-  jokes: [
-    ["tell a joke","Why don’t skeletons fight each other? They don’t have the guts! 💀😂"],
-    ["funny","Haha, here’s a joke for you!"],
-    ["lol","😂😂😂"],
-    ["haha","That was funny!"],
-    ["meme","Do you want to hear a meme?"],
-    ["pun","Why did the scarecrow win an award? Because he was outstanding in his field! 🌾😂"]
-  ],
-  compliment: [
-    ["good job","Thank you!"],
-    ["nice","Nice of you to say!"],
-    ["awesome","Awesome! 😃"],
-    ["fantastic","Fantastic!"],
-    ["cool","Cool!"],
-    ["chill","Chill! 👍"],
-    ["beautiful","That’s beautiful of you!"],
-    ["smart","Smart of you!"],
-    ["amazing","Amazing! 😎"]
-  ],
-  bye: [
-    ["bye","Bye! See you later!"],
-    ["good night","Good night! Sweet dreams!"],
-    ["see you","See you!"],
-    ["later","Later!"],
-    ["i’m leaving","Ok, see you later!"],
-    ["take care","Take care!"]
-  ]
-};
-    
+    // --------------------------
+    // Mega dataset Engels
+    // --------------------------
+    const datasetEN = {
+      greeting: [
+        ["hi","Hey! How are you?"],
+        ["hello","Hello there!"],
+        ["hey","Hey there!"],
+        ["good morning","Good morning! Ready for a new day?"],
+        ["good evening","Good evening! How was your day?"],
+        ["yo","Yo! Great to see you!"],
+        ["greetings","Greetings!"],
+        ["morning","Morning!"],
+        ["evening","Evening!"],
+        ["sup","Sup! How’s it going?"],
+        ["hiya","Hiya!"],
+        ["hey hey","Hey hey!"]
+      ],
+      status: [
+        ["how are you","I’m doing great! And you?"],
+        ["i’m fine","Glad to hear that!"],
+        ["not bad","Not bad at all!"],
+        ["tired","Take some rest, you’ll feel better!"],
+        ["bored","Maybe try something fun?"],
+        ["happy","Great! Keep smiling!"],
+        ["sad","I’m sorry to hear that."],
+        ["angry","Take a deep breath, calm down."],
+        ["ok","Alright!"],
+        ["so so","So so… hope it improves!"],
+        ["how’s it going","Everything’s fine! How about you?"],
+        ["doing well","Good to hear that!"]
+      ],
+      food: [
+        ["pizza","Pizza is delicious!"],
+        ["burger","Burgers are awesome!"],
+        ["fries","Fries are always a good idea!"],
+        ["food","I love virtual food!"],
+        ["coffee","Coffee keeps me awake!"],
+        ["soda","Soda is sweet and refreshing."],
+        ["chocolate","Chocolate makes everything better!"],
+        ["ice cream","Ice cream is perfect in summer!"],
+        ["salad","Healthy and tasty!"],
+        ["fruit","Fruit is good for you!"],
+        ["bread","Bread is always good!"],
+        ["pasta","Pasta is classic and yummy!"],
+        ["soup","Soup warms your heart!"],
+        ["fish","Fish is healthy!"],
+        ["tea","Tea can be relaxing!"]
+      ],
+      games: [
+        ["minecraft","Minecraft is awesome!"],
+        ["roblox","Roblox is full of creativity!"],
+        ["fortnite","Fortnite is popular!"],
+        ["video games","Games are fun! Which do you play?"],
+        ["pokemon","Pokemon is timeless!"],
+        ["call of duty","CoD is exciting!"],
+        ["league of legends","LoL is challenging!"],
+        ["among us","Among Us is funny with friends!"],
+        ["game","Which game do you like?"],
+        ["gaming","Gaming is fun!"],
+        ["fortnite battle royale","Battle Royale is cool!"]
+      ],
+      music: [
+        ["music","Music makes everyone happy! What do you listen to?"],
+        ["song","Sing or listen to a song!"],
+        ["rap","Rap is cool!"],
+        ["rock","Rock music is strong!"],
+        ["pop","Pop music makes people cheerful!"],
+        ["classical","Classical music is relaxing."],
+        ["jazz","Jazz is smooth and chill!"],
+        ["edm","EDM makes you dance!"],
+        ["metal","Metal is powerful!"],
+        ["instrument","Do you play an instrument?"],
+        ["guitar","Guitar music is fun!"],
+        ["piano","Piano sounds beautiful!"],
+        ["singing","Singing is joyful!"]
+      ],
+      school: [
+        ["school","School is important, even if sometimes boring."],
+        ["homework","Homework can be hard, but it helps you learn."],
+        ["exam","Good luck with your exam!"],
+        ["class","How is your class?"],
+        ["teacher","Do you have a nice teacher?"],
+        ["subject","What’s your favorite subject?"],
+        ["college","College is challenging!"],
+        ["university","University can be tough but fun!"],
+        ["study","Studying helps you grow."],
+        ["learning","Learning is important!"]
+      ],
+      hobby: [
+        ["soccer","Soccer is fun!"],
+        ["basketball","Basketball keeps you active!"],
+        ["music","Making music is creative!"],
+        ["singing","Singing makes you happy!"],
+        ["painting","Painting is relaxing."],
+        ["drawing","Drawing is creative!"],
+        ["dancing","Dancing keeps you fit!"],
+        ["photography","Photography captures moments."],
+        ["programming","Programming is fun and useful!"],
+        ["reading","Reading enriches your mind!"],
+        ["crafting","Crafting is fun and creative!"],
+        ["sports","Sports keep you healthy!"],
+        ["walking","Walking relaxes your mind."]
+      ],
+      emotions: [
+        ["happy","Glad to hear that! 😊"],
+        ["sad","I’m sorry to hear that."],
+        ["angry","Calm down, take a breath."],
+        ["tired","Rest a bit, you’ll feel better."],
+        ["excited","That’s exciting! Tell me more!"],
+        ["scared","It’s okay to be scared."],
+        ["nervous","Take deep breaths, it’s okay."],
+        ["relaxed","Stay calm and relaxed."],
+        ["in love","Love is wonderful! ❤️"],
+        ["disappointed","That’s disappointing, I understand."],
+        ["joyful","Being joyful feels great!"],
+        ["frustrated","It’s normal to be frustrated sometimes."]
+      ],
+      jokes: [
+        ["tell a joke","Why don’t skeletons fight each other? They don’t have the guts! 💀😂"],
+        ["funny","Haha, here’s a joke for you!"],
+        ["lol","😂😂😂"],
+        ["haha","That was funny!"],
+        ["meme","Do you want to hear a meme?"],
+        ["pun","Why did the scarecrow win an award? Because he was outstanding in his field! 🌾😂"]
+      ],
+      compliment: [
+        ["good job","Thank you!"],
+        ["nice","Nice of you to say!"],
+        ["awesome","Awesome! 😃"],
+        ["fantastic","Fantastic!"],
+        ["cool","Cool!"],
+        ["chill","Chill! 👍"],
+        ["beautiful","That’s beautiful of you!"],
+        ["smart","Smart of you!"],
+        ["amazing","Amazing! 😎"]
+      ],
+      bye: [
+        ["bye","Bye! See you later!"],
+        ["good night","Good night! Sweet dreams!"],
+        ["see you","See you!"],
+        ["later","Later!"],
+        ["i’m leaving","Ok, see you later!"],
+        ["take care","Take care!"]
+      ]
+    };
 
+    // --------------------------
+    // Functies
+    // --------------------------
     function detectLanguage(text) {
       const lower = text.toLowerCase();
       if(lower.match(/[äöüß]/) || lower.includes("hoe") || lower.includes("dag") || lower.includes("huiswerk")) return "nl";
@@ -318,7 +338,7 @@ const datasetEN = {
     function generateReply(msg) {
       const lang = detectLanguage(msg);
       const lower = msg.toLowerCase();
-      const categories = dataset[lang];
+      const categories = lang === "nl" ? datasetNL : datasetEN;
       for(const cat in categories){
         for(const [trigger, response] of categories[cat]){
           if(lower.includes(trigger)) return response;
