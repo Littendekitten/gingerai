@@ -1,103 +1,116 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>GingerAI + Internet Data</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; }
-#chatBox { border: 1px solid #ccc; padding: 10px; width: 600px; height: 400px; overflow-y: auto; background: #f9f9f9; }
-input { width: 480px; padding: 5px; }
-button { width: 100px; padding: 5px; }
-p { margin: 5px 0; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GingerAI met Internetdata</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #chatBox { border: 1px solid #ccc; padding: 10px; width: 600px; height: 400px; overflow-y: auto; background: #f9f9f9; }
+    input { width: 480px; padding: 5px; }
+    button { width: 100px; padding: 5px; }
+    p { margin: 5px 0; }
+  </style>
 </head>
 <body>
-<h1>Chat met GingerAI (Internet Mode)</h1>
-<div id="chatBox"></div>
-<input id="userInput" type="text" placeholder="Typ hier..." onkeydown="if(event.key==='Enter'){sendMessage()}">
-<button onclick="sendMessage()">Verstuur</button>
+  <h1>Chat met GingerAI (Internet Mode)</h1>
+  <div id="chatBox"></div>
+  <input id="userInput" type="text" placeholder="Typ hier..." onkeydown="if(event.key==='Enter'){sendMessage()}">
+  <button onclick="sendMessage()">Verstuur</button>
 
-<script>
-const chatBox = document.getElementById("chatBox");
+  <script>
+    const chatBox = document.getElementById("chatBox");
 
-// Simpele dataset
-const dataset = {
-  greeting: [["hallo","Hallo! Hoe gaat het?"],["hoi","Hoi!"],["hi","Hey!"]],
-  bye: [["doei","Doei! Tot later!"],["tot ziens","Tot ziens!"]],
-};
+    // Simpele dataset
+    const dataset = {
+      greeting: [["hallo", "Hallo! Hoe gaat het?"], ["hoi", "Hoi!"], ["hi", "Hey!"]],
+      bye: [["doei", "Doei! Tot later!"], ["tot ziens", "Tot ziens!"]],
+    };
 
-// Detecteer taal
-function detectLanguage(text){
-  const lower = text.toLowerCase();
-  if(lower.includes("hoe") || lower.includes("dag") || lower.includes("huiswerk")) return "nl";
-  if(lower.includes("how") || lower.includes("bye") || lower.includes("homework")) return "en";
-  return "nl";
-}
-
-// **API functions**
-async function fetchWikipedia(query){
-  try{
-    const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-    if(!res.ok) return "Geen info gevonden 😅";
-    const data = await res.json();
-    return data.extract || "Geen info beschikbaar 😅";
-  }catch(e){ return "Fout bij ophalen info 😅"; }
-}
-
-async function fetchChuckJoke(){
-  try{
-    const res = await fetch("https://api.chucknorris.io/jokes/random");
-    const data = await res.json();
-    return data.value;
-  }catch(e){ return "Geen grap beschikbaar 😅"; }
-}
-
-async function fetchRandomFact(){
-  try{
-    const res = await fetch("https://uselessfacts.jsph.pl/random.json?language=en");
-    const data = await res.json();
-    return data.text;
-  }catch(e){ return "Geen feit beschikbaar 😅"; }
-}
-
-// Generate reply
-async function generateReply(msg){
-  const lang = detectLanguage(msg);
-  const lower = msg.toLowerCase();
-  
-  // Check dataset eerst
-  for(const cat in dataset){
-    for(const [trigger,response] of dataset[cat]){
-      if(lower.includes(trigger)) return response;
+    // Detecteer taal
+    function detectLanguage(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes("hoe") || lower.includes("dag") || lower.includes("huiswerk")) return "nl";
+      if (lower.includes("how") || lower.includes("bye") || lower.includes("homework")) return "en";
+      return "nl";
     }
-  }
 
-  // Anders: probeer API's
-  if(lower.includes("wikipedia")) return await fetchWikipedia(lower.replace("wikipedia","").trim() || "GingerAI");
-  if(lower.includes("grap")) return await fetchChuckJoke();
-  if(lower.includes("feit") || lower.includes("fact")) return await fetchRandomFact();
-  
-  return lang==="nl"?"Sorry, dat begrijp ik nog niet 😅":"Sorry, I don’t understand 😅";
-}
+    // Wikipedia API functie
+    async function fetchWikipedia(query) {
+      try {
+        const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
+        if (!res.ok) return "Geen info gevonden 😅";
+        const data = await res.json();
+        return data.extract || "Geen info beschikbaar 😅";
+      } catch (e) {
+        return "Fout bij ophalen info 😅";
+      }
+    }
 
-// Send message
-async function sendMessage(){
-  const userInput = document.getElementById("userInput");
-  const text = userInput.value.trim();
-  if(!text) return;
+    // Chuck Norris grap API functie
+    async function fetchChuckJoke() {
+      try {
+        const res = await fetch("https://api.chucknorris.io/jokes/random");
+        const data = await res.json();
+        return data.value;
+      } catch (e) {
+        return "Geen grap beschikbaar 😅";
+      }
+    }
 
-  addMessage("Jij", text);
-  const reply = await generateReply(text);
-  addMessage("GingerAI", reply);
-  chatBox.scrollTop = chatBox.scrollHeight;
-  userInput.value = "";
-}
+    // Random feit API functie
+    async function fetchRandomFact() {
+      try {
+        const res = await fetch("https://uselessfacts.jsph.pl/random.json?language=en");
+        const data = await res.json();
+        return data.text;
+      } catch (e) {
+        return "Geen feit beschikbaar 😅";
+      }
+    }
 
-function addMessage(sender,text){
-  const p = document.createElement("p");
-  p.innerHTML = `<b>${sender}:</b> ${text}`;
-  chatBox.appendChild(p);
-}
-</script>
+    // Genereer antwoord
+    async function generateReply(msg) {
+      const lang = detectLanguage(msg);
+      const lower = msg.toLowerCase();
+
+      // Check dataset eerst
+      for (const cat in dataset) {
+        for (const [trigger, response] of dataset[cat]) {
+          if (lower.includes(trigger)) return response;
+        }
+      }
+
+      // Anders: probeer API's
+      if (lower.includes("wikipedia")) {
+        const topic = lower.replace("wikipedia", "").trim() || "GingerAI";
+        return await fetchWikipedia(topic);
+      }
+      if (lower.includes("grap")) return await fetchChuckJoke();
+      if (lower.includes("feit") || lower.includes("fact")) return await fetchRandomFact();
+
+      return lang === "nl" ? "Sorry, dat begrijp ik nog niet 😅" : "Sorry, I don’t understand 😅";
+    }
+
+    // Stuur bericht
+    async function sendMessage() {
+      const userInput = document.getElementById("userInput");
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      addMessage("Jij", text);
+      const reply = await generateReply(text);
+      addMessage("GingerAI", reply);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      userInput.value = "";
+    }
+
+    // Voeg bericht toe aan chat
+    function addMessage(sender, text) {
+      const p = document.createElement("p");
+      p.innerHTML = `<b>${sender}:</b> ${text}`;
+      chatBox.appendChild(p);
+    }
+  </script>
 </body>
 </html>
