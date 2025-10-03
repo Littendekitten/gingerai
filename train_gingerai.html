@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <title>GingerAI Training Chat</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; background: #fafafa; }
+    #chatBox {
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 500px;
+      height: 400px;
+      overflow-y: auto;
+      background: #fff;
+      margin-bottom: 10px;
+    }
+    input, select, button {
+      padding: 6px;
+      margin: 3px;
+    }
+    p { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h1>Chat met GingerAI (met training!)</h1>
+
+  <div id="chatBox"></div>
+  <input id="userInput" type="text" placeholder="Typ hier..." onkeydown="if(event.key==='Enter'){sendMessage()}">
+  <button onclick="sendMessage()">Verstuur</button>
+
+  <h3>✨ Train GingerAI</h3>
+  <input id="trainText" type="text" placeholder="Voorbeeldzin">
+  <select id="trainLabel">
+    <option value="greeting">Groet</option>
+    <option value="status">Status</option>
+    <option value="name">Naam</option>
+    <option value="bye">Afscheid</option>
+    <option value="compliment">Compliment</option>
+  </select>
+  <button onclick="trainExample()">Train</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
+  <script>
+    let classifier;
+
+    async function setupModel() {
+      classifier = ml5.naiveBayes();
+
+      // Standaard training
+      classifier.addExample("hallo", "greeting");
+      classifier.addExample("hoi", "greeting");
+      classifier.addExample("hoe gaat het", "status");
+      classifier.addExample("alles goed?", "status");
+      classifier.addExample("wat is je naam", "name");
+      classifier.addExample("hoe heet je", "name");
+      classifier.addExample("doei", "bye");
+      classifier.addExample("tot ziens", "bye");
+
+      await classifier.train();
+      addMessage("System", "✅ GingerAI is getraind en klaar om te praten!");
+    }
+
+    function sendMessage() {
+      const userInput = document.getElementById("userInput");
+      const text = userInput.value.trim();
+      if(!text) return;
+
+      addMessage("Jij", text);
+      userInput.value = "";
+
+      classifier.classify(text, (err, result) => {
+        if(err) {
+          addMessage("Error", "Er ging iets mis bij classificatie");
+          return;
+        }
+
+        let reply = "Sorry, dat begrijp ik niet.";
+        const label = result.label;
+
+        if(label === "greeting") reply = "Hallo! Ik ben GingerAI! 😸";
+        if(label === "status") reply = "Met mij gaat het goed! En met jou?";
+        if(label === "name") reply = "Ik heet GingerAI!";
+        if(label === "bye") reply = "Tot ziens! Fijne dag!";
+        if(label === "compliment") reply = "Ah dankjewel! Jij bent ook geweldig!";
+
+        setTimeout(() => addMessage("GingerAI", reply), 300);
+      });
+    }
+
+    function trainExample() {
+      const text = document.getElementById("trainText").value.trim();
+      const label = document.getElementById("trainLabel").value;
+      if(!text) return;
+
+      classifier.addExample(text, label);
+      classifier.train(() => {
+        addMessage("System", `📚 Nieuw voorbeeld geleerd: "${text}" → ${label}`);
+      });
+
+      document.getElementById("trainText").value = "";
+    }
+
+    function addMessage(sender, text) {
+      const chatBox = document.getElementById("chatBox");
+      const p = document.createElement("p");
+      p.innerHTML = `<b>${sender}:</b> ${text}`;
+      chatBox.appendChild(p);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Init model
+    setupModel();
+  </script>
+</body>
+</html>
