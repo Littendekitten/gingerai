@@ -2,62 +2,123 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8">
-  <title>GingerAI Training Chat</title>
+  <title>Train GingerAI</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 30px; background: #fafafa; }
-    #chatBox {
-      border: 1px solid #ccc;
-      padding: 10px;
-      width: 500px;
-      height: 400px;
-      overflow-y: auto;
-      background: #fff;
-      margin-bottom: 10px;
-    }
-    input, select, button {
-      padding: 6px;
-      margin: 3px;
-    }
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    #chatBox { border: 1px solid #ccc; padding: 10px; width: 500px; height: 400px; overflow-y: auto; background: #f9f9f9; }
+    input { width: 400px; padding: 5px; }
+    button { width: 80px; padding: 5px; }
     p { margin: 5px 0; }
   </style>
 </head>
 <body>
-  <h1>Chat met GingerAI (met training!)</h1>
-
+  <h1>Chat met GingerAI</h1>
   <div id="chatBox"></div>
   <input id="userInput" type="text" placeholder="Typ hier..." onkeydown="if(event.key==='Enter'){sendMessage()}">
   <button onclick="sendMessage()">Verstuur</button>
 
-  <h3>✨ Train GingerAI</h3>
-  <input id="trainText" type="text" placeholder="Voorbeeldzin">
-  <select id="trainLabel">
-    <option value="greeting">Groet</option>
-    <option value="status">Status</option>
-    <option value="name">Naam</option>
-    <option value="bye">Afscheid</option>
-    <option value="compliment">Compliment</option>
-  </select>
-  <button onclick="trainExample()">Train</button>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/ml5/0.12.2/ml5.min.js"></script>
   <script>
-    let classifier;
+    const chatBox = document.getElementById("chatBox");
 
-    async function setupModel() {
-      classifier = ml5.naiveBayes();
+    // Mega dataset NL + EN
+    const dataset = {
+      nl: {
+        greeting: [
+          ["hallo","Hallo! Ik ben GingerAI!"],
+          ["hoi","Hoi! Hoe gaat het?"],
+          ["goedemorgen","Goedemorgen!"]
+        ],
+        status: [
+          ["hoe gaat","Met mij gaat het goed! En met jou?"],
+          ["alles chill","Ja hoor, alles chill!"]
+        ],
+        bye: [
+          ["doei","Doei! Tot de volgende keer!"],
+          ["tot ziens","Tot ziens!"]
+        ],
+        compliment: [
+          ["leuk","Leuk dat je dat zegt!"],
+          ["goed gedaan","Dankjewel!"]
+        ],
+        weather: [
+          ["weer","Het weer is altijd mooi in de virtuele wereld!"]
+        ],
+        food: [
+          ["pizza","Pizza is heerlijk!"],
+          ["eten","Ik hou van virtueel eten."]
+        ],
+        games: [
+          ["minecraft","Minecraft is super leuk!"],
+          ["roblox","Roblox heeft zoveel mogelijkheden!"]
+        ],
+        school: [
+          ["school","School kan soms saai zijn, maar leren is belangrijk!"],
+          ["huiswerk","Huiswerk kan lastig zijn, maar het helpt je groeien."]
+        ]
+      },
+      en: {
+        greeting: [
+          ["hi","Hi! I’m GingerAI!"],
+          ["hello","Hello there!"],
+          ["good morning","Good morning!"]
+        ],
+        status: [
+          ["how are you","I’m doing great! How about you?"],
+          ["what’s up","Not much, just chatting with you!"]
+        ],
+        bye: [
+          ["bye","Bye! See you later!"],
+          ["good night","Good night! Sweet dreams!"]
+        ],
+        compliment: [
+          ["nice","Nice of you to say!"],
+          ["good job","Thank you very much!"]
+        ],
+        weather: [
+          ["weather","The weather is always nice in the virtual world!"]
+        ],
+        food: [
+          ["pizza","Pizza is delicious!"],
+          ["food","I love talking about food."]
+        ],
+        games: [
+          ["minecraft","Minecraft is awesome!"],
+          ["roblox","Roblox is full of creativity!"]
+        ],
+        school: [
+          ["school","School is important, even if it’s boring sometimes."],
+          ["homework","Homework can be hard, but it helps you learn."]
+        ]
+      }
+    };
 
-      // Standaard training
-      classifier.addExample("hallo", "greeting");
-      classifier.addExample("hoi", "greeting");
-      classifier.addExample("hoe gaat het", "status");
-      classifier.addExample("alles goed?", "status");
-      classifier.addExample("wat is je naam", "name");
-      classifier.addExample("hoe heet je", "name");
-      classifier.addExample("doei", "bye");
-      classifier.addExample("tot ziens", "bye");
+    // Detecteer taal van de input
+    function detectLanguage(text) {
+      const lower = text.toLowerCase();
+      // simpele heuristiek
+      if(lower.match(/[äöüß]/) || lower.includes("hoe") || lower.includes("dag") || lower.includes("huiswerk")) {
+        return "nl";
+      }
+      if(lower.includes("how") || lower.includes("hello") || lower.includes("bye") || lower.includes("homework")) {
+        return "en";
+      }
+      // fallback: kies NL als default
+      return "nl";
+    }
 
-      await classifier.train();
-      addMessage("System", "✅ GingerAI is getraind en klaar om te praten!");
+    function generateReply(msg) {
+      const lang = detectLanguage(msg);
+      const lower = msg.toLowerCase();
+      const categories = dataset[lang];
+      
+      for(const cat in categories){
+        for(const [trigger, response] of categories[cat]){
+          if(lower.includes(trigger)) return response;
+        }
+      }
+      return lang === "nl" 
+        ? "Sorry, dat begrijp ik nog niet helemaal." 
+        : "Sorry, I don’t quite understand that yet.";
     }
 
     function sendMessage() {
@@ -66,50 +127,23 @@
       if(!text) return;
 
       addMessage("Jij", text);
+
+      const reply = generateReply(text);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      setTimeout(() => {
+        addMessage("GingerAI", reply);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }, 300);
+
       userInput.value = "";
-
-      classifier.classify(text, (err, result) => {
-        if(err) {
-          addMessage("Error", "Er ging iets mis bij classificatie");
-          return;
-        }
-
-        let reply = "Sorry, dat begrijp ik niet.";
-        const label = result.label;
-
-        if(label === "greeting") reply = "Hallo! Ik ben GingerAI! 😸";
-        if(label === "status") reply = "Met mij gaat het goed! En met jou?";
-        if(label === "name") reply = "Ik heet GingerAI!";
-        if(label === "bye") reply = "Tot ziens! Fijne dag!";
-        if(label === "compliment") reply = "Ah dankjewel! Jij bent ook geweldig!";
-
-        setTimeout(() => addMessage("GingerAI", reply), 300);
-      });
-    }
-
-    function trainExample() {
-      const text = document.getElementById("trainText").value.trim();
-      const label = document.getElementById("trainLabel").value;
-      if(!text) return;
-
-      classifier.addExample(text, label);
-      classifier.train(() => {
-        addMessage("System", `📚 Nieuw voorbeeld geleerd: "${text}" → ${label}`);
-      });
-
-      document.getElementById("trainText").value = "";
     }
 
     function addMessage(sender, text) {
-      const chatBox = document.getElementById("chatBox");
       const p = document.createElement("p");
       p.innerHTML = `<b>${sender}:</b> ${text}`;
       chatBox.appendChild(p);
-      chatBox.scrollTop = chatBox.scrollHeight;
     }
-
-    // Init model
-    setupModel();
   </script>
 </body>
 </html>
