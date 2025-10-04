@@ -1,132 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GingerAI Chat</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GingerAI — Chats</title>
 <style>
-    html, body {
-        height: 100%;
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: linear-gradient(180deg, #ff9a9e 0%, #fecfef 100%);
-    }
-    #chat-container {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        max-width: 600px;
-        margin: 0 auto;
-        background: #fff;
-        box-shadow: 0 0 20px rgba(0,0,0,0.2);
-        border-radius: 15px;
-        overflow: hidden;
-        position: relative;
-    }
-    #messages {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        padding: 15px;
-        padding-bottom: 80px; /* ruimte voor input */
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-    .message {
-        margin: 0;
-        padding: 8px 12px;
-        border-radius: 10px;
-        max-width: 80%;
-        word-wrap: break-word;
-    }
-    .user {
-        align-self: flex-end;
-        background: #0066cc;
-        color: #fff;
-    }
-    .ginger {
-        align-self: flex-start;
-        background: #ff7e5f;
-        color: #fff;
-    }
-    #input-container {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        max-width: 600px;
-        display: flex;
-        padding: 10px;
-        border-top: 1px solid rgba(255,255,255,0.3);
-        background: linear-gradient(90deg, #ff7e5f, #feb47b);
-        box-sizing: border-box;
-    }
-    #message-input {
-        flex: 1;
-        padding: 10px;
-        border-radius: 25px;
-        border: 1px solid #ccc;
-        font-size: 1em;
-        outline: none;
-    }
-    #send-btn {
-        padding: 10px 15px;
-        margin-left: 10px;
-        border: none;
-        background: #0066cc;
-        color: #fff;
-        border-radius: 25px;
-        cursor: pointer;
-        font-size: 1em;
-    }
-    #send-btn:hover {
-        background: #004999;
-    }
+  :root{
+    --bg-grad: linear-gradient(180deg,#ff9a9e 0%,#fecfef 100%);
+    --accent1: #ff7e5f;
+    --accent2: #feb47b;
+    --blue: #0066cc;
+    --card-bg: rgba(255,255,255,0.9);
+    --muted: #666;
+  }
+
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, Arial, sans-serif;background:var(--bg-grad);-webkit-font-smoothing:antialiased}
+  /* Layout */
+  .app {
+    max-width:1200px;margin:24px auto; height: calc(100vh - 48px);
+    display:flex; gap:20px; padding:12px; box-sizing:border-box;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width:320px; min-width:240px; background:var(--card-bg); border-radius:12px; padding:12px; box-shadow:0 6px 20px rgba(0,0,0,0.12);
+    display:flex; flex-direction:column;
+  }
+  .sidebar .top {
+    display:flex; gap:8px; align-items:center; margin-bottom:12px;
+  }
+  .new-btn {
+    display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; background:linear-gradient(90deg,var(--accent1),var(--accent2)); color:#fff; border:none; cursor:pointer; font-weight:600;
+  }
+  .new-btn svg{width:18px;height:18px}
+
+  .chat-list { overflow:auto; flex:1; padding-right:6px; }
+  .chat-item {
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:10px; border-radius:8px; cursor:pointer; margin-bottom:8px;
+  }
+  .chat-item:hover{background:rgba(0,0,0,0.03)}
+  .chat-item.active{background:linear-gradient(90deg, rgba(255,126,95,0.12), rgba(254,180,123,0.12));}
+
+  .chat-left {display:flex; gap:10px; align-items:center;}
+  .chat-avatar {width:36px; height:36px; border-radius:8px; background:linear-gradient(135deg,var(--accent1),var(--accent2)); display:flex; align-items:center; justify-content:center; color:white; font-weight:700}
+  .chat-meta {display:flex; flex-direction:column}
+  .chat-title {font-weight:600}
+  .chat-sub {font-size:12px; color:var(--muted)}
+
+  .trash-btn {background:transparent;border:none;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px}
+  .trash-btn:hover{background:rgba(0,0,0,0.05); color:#d9534f}
+
+  /* Main chat area */
+  .main {
+    flex:1; display:flex; flex-direction:column; border-radius:12px; overflow:hidden; box-shadow:0 6px 20px rgba(0,0,0,0.12);
+    background: linear-gradient(180deg,#fffdfd, #fff7f6);
+  }
+
+  .main .header {
+    padding:12px 16px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(0,0,0,0.04);
+  }
+  .main .header .title {font-weight:700}
+  .main .messages {
+    flex:1; overflow:auto; padding:18px; display:flex; flex-direction:column; gap:12px;
+  }
+
+  /* message bubbles */
+  .msg { max-width:76%; padding:10px 14px; border-radius:14px; line-height:1.3; word-break:break-word; box-shadow: 0 3px 8px rgba(0,0,0,0.04) }
+  .msg.user { margin-left:auto; background:linear-gradient(90deg,#4da6ff,#2d8cff); color:white; border-bottom-right-radius:6px; }
+  .msg.ai { margin-right:auto; background:linear-gradient(90deg,var(--accent2),#fff0e6); color:#2b2b2b; border-bottom-left-radius:6px; }
+
+  .msg .time { display:block; font-size:11px; color:var(--muted); margin-top:6px; opacity:0.8 }
+
+  /* Input area — fixed at bottom inside .main */
+  .input-wrap {
+    padding:10px; border-top:1px solid rgba(0,0,0,0.04); background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    position:relative;
+  }
+  .input-inner { max-width:100%; margin:0 auto; display:flex; gap:8px; }
+  .input {
+    flex:1; display:flex; align-items:center; gap:8px;
+    background:#fff; padding:8px 12px; border-radius:999px;
+  }
+  .input input {
+    width:100%; border:none; outline:none; font-size:15px; padding:8px 6px; background:transparent;
+  }
+  .send {
+    background:var(--blue); color:#fff; border:none; padding:10px 14px; border-radius:999px; cursor:pointer; font-weight:600;
+  }
+
+  /* small screens: collapse sidebar */
+  @media (max-width:880px){
+    .app{padding:8px}
+    .sidebar{width:260px}
+  }
+  @media (max-width:700px){
+    .app{flex-direction:column; height:100%}
+    .sidebar{order:2; width:100%; min-width:unset; max-height:200px; overflow:auto}
+    .main{order:1; height:calc(100vh - 220px)}
+    .input-wrap{position:fixed; left:0; right:0; bottom:0; margin:0 auto; max-width:100%}
+    .main .messages{padding-bottom:120px} /* keep space for fixed input */
+  }
 </style>
 </head>
 <body>
 
-<div id="chat-container">
-    <div id="messages">
-        <div class="message ginger">Hello! I'm GingerAI. Ask me anything.</div>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar" aria-label="Chats sidebar">
+    <div class="top">
+      <button class="new-btn" id="btnNew">
+        <!-- plus icon -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5v14M5 12h14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        New Chat
+      </button>
+      <div style="flex:1"></div>
+      <button id="btnClearAll" title="Clear all" style="background:transparent;border:none;color:var(--muted);cursor:pointer">Clear</button>
     </div>
-    <div id="input-container">
-        <input type="text" id="message-input" placeholder="Type your message...">
-        <button id="send-btn">Send</button>
+
+    <div class="chat-list" id="chatList" role="list"></div>
+
+    <div style="font-size:12px;color:var(--muted);padding-top:10px">Conversations are stored locally in your browser.</div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" role="main" aria-live="polite">
+    <div class="header">
+      <div class="title" id="chatTitle">New chat</div>
+      <div style="flex:1"></div>
+      <div id="chatInfo" style="font-size:13px;color:var(--muted)"></div>
     </div>
+
+    <div class="messages" id="messagesArea"></div>
+
+    <div class="input-wrap">
+      <div class="input-inner">
+        <div class="input" role="form" aria-label="Message input">
+          <input id="messageInput" type="text" placeholder="Type your message..." autocomplete="off" />
+        </div>
+        <button class="send" id="sendBtn">Send</button>
+      </div>
+    </div>
+  </div>
 </div>
 
-<script src="train_gingerai.js"></script>
 <script>
-    const input = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-btn');
-    const messages = document.getElementById('messages');
+/* ---------- Storage format ----------
+localStorage key: 'gingerai_chats'
+value: JSON.stringify({ chats: [ {id, title, created, messages:[{sender:'user'|'ai',text,time}] } ], lastId } )
+-------------------------------------*/
 
-    function addMessage(text, sender) {
-        const div = document.createElement('div');
-        div.classList.add('message', sender);
-        div.textContent = text;
-        messages.appendChild(div);
-        messages.scrollTop = messages.scrollHeight;
-    }
+const STORAGE_KEY = 'gingerai_chats_v1';
 
-    async function sendMessage() {
-        const text = input.value.trim();
-        if(!text) return;
-        addMessage(text, 'user');
-        input.value = '';
-        try {
-            const response = await window.GingerAI.ask(text);
-            addMessage(response, 'ginger');
-        } catch(e) {
-            addMessage("Error: GingerAI unavailable.", 'ginger');
-        }
-    }
+/* Utilities */
+function uid(){ return 'c_' + Math.random().toString(36).slice(2,9) }
+function now(){ return new Date().toISOString() }
+function humanTime(iso){ const d=new Date(iso); return d.toLocaleString(); }
 
-    sendBtn.addEventListener('click', sendMessage);
-    input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
+/* Load / Save */
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return {chats:[], last: null};
+    return JSON.parse(raw);
+  }catch(e){ return {chats:[], last: null} }
+}
+function saveState(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)) }
+
+/* Initial state */
+let state = loadState();
+if(!state.chats) state = {chats:[], last: null};
+
+/* DOM refs */
+const chatListEl = document.getElementById('chatList');
+const messagesEl = document.getElementById('messagesArea');
+const titleEl = document.getElementById('chatTitle');
+const chatInfoEl = document.getElementById('chatInfo');
+const inputEl = document.getElementById('messageInput');
+const sendBtn = document.getElementById('sendBtn');
+const btnNew = document.getElementById('btnNew');
+const btnClearAll = document.getElementById('btnClearAll');
+
+let activeChatId = state.last || null;
+
+/* Render sidebar */
+function renderSidebar(){
+  chatListEl.innerHTML = '';
+  // order by created desc
+  const list = [...state.chats].sort((a,b)=> new Date(b.created) - new Date(a.created));
+  list.forEach(chat=>{
+    const item = document.createElement('div');
+    item.className = 'chat-item' + (chat.id === activeChatId ? ' active' : '');
+    item.setAttribute('data-id', chat.id);
+
+    const left = document.createElement('div'); left.className='chat-left';
+    const avatar = document.createElement('div'); avatar.className='chat-avatar';
+    avatar.textContent = (chat.title||'Chat').slice(0,1).toUpperCase();
+    const meta = document.createElement('div'); meta.className='chat-meta';
+    const t = document.createElement('div'); t.className='chat-title'; t.textContent = chat.title || 'New chat';
+    const sub = document.createElement('div'); sub.className='chat-sub'; sub.textContent = chat.messages && chat.messages.length ? (chat.messages[chat.messages.length-1].text.slice(0,40)) : 'No messages';
+
+    meta.appendChild(t); meta.appendChild(sub);
+    left.appendChild(avatar); left.appendChild(meta);
+
+    const right = document.createElement('div');
+    const trash = document.createElement('button');
+    trash.className='trash-btn';
+    trash.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11v6M14 11v6M9 6l1-2h4l1 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    trash.title = 'Delete chat';
+
+    trash.addEventListener('click', (ev)=>{
+      ev.stopPropagation();
+      if(confirm('Delete this conversation?')) {
+        deleteChat(chat.id);
+      }
+    });
+
+    right.appendChild(trash);
+
+    item.appendChild(left);
+    item.appendChild(right);
+
+    item.addEventListener('click', ()=> selectChat(chat.id) );
+    chatListEl.appendChild(item);
+  });
+}
+
+/* Render messages for active chat */
+function renderMessages(){
+  messagesEl.innerHTML = '';
+  if(!activeChatId){
+    titleEl.textContent = 'New chat';
+    chatInfoEl.textContent = '';
+    return;
+  }
+  const chat = state.chats.find(c=>c.id===activeChatId);
+  if(!chat){ titleEl.textContent = 'New chat'; chatInfoEl.textContent=''; return; }
+  titleEl.textContent = chat.title || 'Chat';
+  chatInfoEl.textContent = 'Created: ' + humanTime(chat.created);
+
+  chat.messages.forEach(m=>{
+    const el = document.createElement('div');
+    el.className = 'msg ' + (m.sender === 'user' ? 'user' : 'ai');
+    el.innerHTML = `<div>${escapeHtml(m.text)}</div><span class="time">${humanTime(m.time)}</span>`;
+    messagesEl.appendChild(el);
+  });
+
+  // scroll to bottom
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* Helpers */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+
+/* Chat operations */
+function createChat(title){
+  const chat = { id: uid(), title: title || 'New chat', created: now(), messages: [] };
+  state.chats.push(chat);
+  state.last = chat.id;
+  activeChatId = chat.id;
+  saveState(state); renderSidebar(); renderMessages();
+  focusInput();
+  return chat;
+}
+
+function deleteChat(id){
+  state.chats = state.chats.filter(c=>c.id !== id);
+  if(state.last === id) state.last = state.chats.length ? state.chats[state.chats.length-1].id : null;
+  if(activeChatId === id) activeChatId = state.last;
+  saveState(state); renderSidebar(); renderMessages();
+}
+
+function selectChat(id){
+  activeChatId = id;
+  state.last = id;
+  saveState(state);
+  renderSidebar(); renderMessages();
+  focusInput();
+}
+
+function addMessageToActive(sender, text){
+  if(!activeChatId){
+    // if no chat, auto-create one
+    createChat();
+  }
+  const chat = state.chats.find(c=>c.id===activeChatId);
+  if(!chat) return;
+  const msg = { sender, text, time: now() };
+  chat.messages.push(msg);
+  // if chat title is default and first user message, set a better title
+  if((!chat.title || chat.title==='New chat') && sender==='user'){
+    chat.title = text.length > 30 ? text.slice(0,30) + '...' : text;
+  }
+  saveState(state);
+  renderSidebar(); renderMessages();
+}
+
+/* Send flow */
+async function sendCurrentMessage(){
+  const text = inputEl.value.trim();
+  if(!text) return;
+  addMessageToActive('user', text);
+  inputEl.value = '';
+  // Show typing placeholder
+  const typingId = 'typing_' + Date.now();
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg ai';
+  typingEl.id = typingId;
+  typingEl.innerHTML = `<div>GingerAI is typing...</div>`;
+  messagesEl.appendChild(typingEl);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // Try to call GingerAI.ask (train_gingerai.js should define it)
+  try{
+    const reply = (window.GingerAI && window.GingerAI.ask) ? await window.GingerAI.ask(text) : "GingerAI not loaded.";
+    // remove typing
+    const node = document.getElementById(typingId);
+    if(node) node.remove();
+    addMessageToActive('ai', reply || "I couldn't think of a reply.");
+  }catch(err){
+    const node = document.getElementById(typingId);
+    if(node) node.remove();
+    addMessageToActive('ai', 'Error getting response.');
+    console.error('GingerAI.ask error', err);
+  }
+}
+
+/* Focus helper */
+function focusInput(){ setTimeout(()=>{ inputEl.focus(); }, 80) }
+
+/* UI wiring */
+const messageInputEl = document.getElementById('messageInput');
+const inputEl = messageInputEl;
+
+sendBtn.addEventListener('click', sendCurrentMessage);
+inputEl.addEventListener('keydown', (e)=>{ if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendCurrentMessage(); } });
+
+btnNew.addEventListener('click', ()=>{
+  const c = createChat('New chat');
+  renderSidebar();
+  selectChat(c.id);
+});
+
+btnClearAll.addEventListener('click', ()=>{
+  if(confirm('Clear all conversations? This cannot be undone.')){
+    state = {chats:[], last:null};
+    saveState(state);
+    activeChatId = null;
+    renderSidebar(); renderMessages();
+  }
+});
+
+/* Initialize */
+(function init(){
+  // if no chats exist, create one
+  if(state.chats.length === 0){
+    createChat('New chat');
+  } else {
+    // if last exists select it, else pick the last chat
+    if(!activeChatId) activeChatId = state.last || (state.chats.length ? state.chats[state.chats.length-1].id : null);
+  }
+  renderSidebar();
+  renderMessages();
+
+  // ensure messages area always has bottom padding on small screens when keyboard appears
+  window.addEventListener('resize', ()=>{ messagesEl.scrollTop = messagesEl.scrollHeight });
+})();
 </script>
-
 </body>
 </html>
