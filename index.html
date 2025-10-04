@@ -7,257 +7,193 @@
 <link rel="icon" href="assets/logo.png">
 <style>
 html, body {
-    height: 100%;
-    margin: 0;
+    margin:0;
+    padding:0;
+    height:100%;
     font-family: Arial, sans-serif;
-    background: linear-gradient(120deg, #ff7e5f, #feb47b);
+    background: linear-gradient(135deg, #FF8A00, #E52E71);
 }
 
-/* Hamburger button */
-#hamburger {
-    position: fixed;
-    top: 10px;
-    left: 10px;
-    z-index: 1100;
-    background: #ff6600;
-    color: #fff;
-    padding: 6px 10px;
-    border-radius:5px;
-    cursor: pointer;
-    font-size: 1em;
+#app {
+    display:flex;
+    height:100%;
+    overflow:hidden;
 }
-#hamburger:hover { background: #e65c00; }
 
 /* Sidebar */
 #sidebar {
-    width: 240px;
-    background: #ff9a5c;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    display: flex;
-    flex-direction: column;
-    transform: translateX(-100%);
+    width:250px;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
     transition: transform 0.3s ease;
-    z-index: 1000;
-    padding-top: 10px;
+    z-index:2;
 }
-#sidebar.open { transform: translateX(0); }
+#sidebar.collapsed { transform:translateX(-250px); }
 
-#sidebar-logo {
-    width: 60%;
-    max-width:120px;
-    margin: 10px auto;
-    display: block;
+#sidebar-header {
+    display:flex;
+    align-items:center;
+    padding:10px;
+    border-bottom:1px solid #ddd;
 }
+#sidebar-header img { width:30px; height:30px; margin-right:10px; }
+#sidebar-header span { font-weight:bold; font-size:1.1em; color:#E52E71; }
 
-#new-chat-btn {
-    background: #ff6600;
-    color: #fff;
-    border-radius:5px;
-    padding: 5px 8px;
-    margin: 10px auto;
-    cursor:pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size:0.8em;
-}
-#new-chat-btn:hover { background:#e65c00; }
-
-#chat-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 5px 10px;
-    font-size:0.8em;
-}
+#chat-list { flex:1; overflow-y:auto; }
 .chat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 5px;
-    margin-bottom: 3px;
-    background: #ffb487;
-    border-radius: 5px;
-    cursor: pointer;
-}
-.chat-item span:first-child { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.chat-item:hover { background: #ffa75f; }
-
-/* Chat container */
-#chat-container {
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    background: #fff;
-    margin-left: 0;
-    transition: margin-left 0.3s ease;
-    max-width: 900px;
-    margin: 0 auto;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* Messages */
-#messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px;
-    font-size: 0.95em;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-}
-.message { margin:4px 0; }
-.user { color: #0066cc; text-align:right; }
-.ginger { color: #cc6600; text-align:left; }
-
-/* Input */
-#input-container {
-    display: flex;
-    flex-shrink: 0;
-    padding: 6px;
-    border-top:1px solid #ddd;
-    background: #fafafa;
-}
-#message-input {
-    flex:1;
-    padding:8px;
-    border-radius:5px;
-    border:1px solid #ccc;
-    font-size:0.95em;
-}
-#send-btn {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
     padding:8px 10px;
-    background:#ff6600;
+    border-bottom:1px solid #eee;
+    cursor:pointer;
+}
+.chat-item:hover { background:#f0f0f0; }
+.chat-item button { background:none; border:none; color:#E52E71; cursor:pointer; font-size:1.1em; }
+
+/* Chat Area */
+#chat-area { flex:1; display:flex; flex-direction:column; background:#fff; }
+#messages { flex:1; display:flex; flex-direction:column-reverse; overflow-y:auto; padding:10px; }
+.message.user { color:#0066cc; margin:4px 0; }
+.message.ginger { color:#cc6600; margin:4px 0; }
+
+#input-container {
+    display:flex;
+    padding:6px 10px;
+    border-top:1px solid #ddd;
+    background:#fafafa;
+}
+#message-input { flex:1; padding:8px; border-radius:5px; border:1px solid #ccc; font-size:1em; }
+#send-btn { padding:8px 12px; margin-left:5px; border:none; border-radius:5px; background:#E52E71; color:#fff; cursor:pointer; }
+#send-btn:hover { background:#FF8A00; }
+
+/* Hamburger */
+#hamburger {
+    position:absolute;
+    top:10px; left:10px;
+    z-index:3;
+    font-size:1.5em;
     color:#fff;
-    border-radius:5px;
-    margin-left:5px;
-    font-size:0.95em;
-}
-#send-btn:hover { background:#e65c00; }
-
-/* Desktop sidebar open by default */
-@media(min-width:701px){
-    #sidebar { transform: translateX(0); position: relative; }
-    #chat-container { margin-left: 240px; top:20px; bottom:20px; border-radius:10px; }
+    cursor:pointer;
 }
 
-/* Mobile tweaks */
+/* Responsive */
 @media(max-width:700px){
-    #chat-container { width: 100%; border-radius:0; }
-    #messages { font-size: 1em; padding:6px; text-align:center; }
-    #input-container { padding:4px; }
-    #message-input { font-size:1em; }
+    #sidebar { position:absolute; height:100%; left:0; top:0; }
+    #chat-area { flex:1; margin-left:0; }
+    #messages { font-size:1.2em; }
 }
 </style>
 </head>
 <body>
-
-<div id="hamburger">&#9776;</div>
-
-<div id="sidebar">
-    <img src="assets/logo.png" alt="Logo" id="sidebar-logo">
-    <div id="new-chat-btn">New Chat 🗑️</div>
-    <div id="chat-list"></div>
-</div>
-
-<div id="chat-container">
-    <div id="messages"></div>
-    <div id="input-container">
-        <input type="text" id="message-input" placeholder="Type your message...">
-        <button id="send-btn">Send</button>
+<div id="app">
+    <div id="sidebar" class="collapsed">
+        <div id="sidebar-header">
+            <img src="assets/logo.png" alt="Logo">
+            <span>Chats</span>
+        </div>
+        <button id="new-chat" style="margin:10px; padding:5px 10px; background:#FF8A00; border:none; color:#fff; border-radius:5px; cursor:pointer;">New Chat</button>
+        <div id="chat-list"></div>
+    </div>
+    <div id="chat-area">
+        <div id="messages"></div>
+        <div id="input-container">
+            <input type="text" id="message-input" placeholder="Type your message...">
+            <button id="send-btn">Send</button>
+        </div>
     </div>
 </div>
+<div id="hamburger">&#9776;</div>
 
 <script src="train_gingerai.js"></script>
 <script>
-const hamburger = document.getElementById('hamburger');
 const sidebar = document.getElementById('sidebar');
-const newChatBtn = document.getElementById('new-chat-btn');
+const hamburger = document.getElementById('hamburger');
+const newChatBtn = document.getElementById('new-chat');
 const chatList = document.getElementById('chat-list');
 const messages = document.getElementById('messages');
 const input = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
 
 let chats = [];
-let activeChatId = null;
+let currentChatId = null;
 
-function addMessage(text, sender) {
-    const div = document.createElement('div');
-    div.classList.add('message', sender);
-    div.textContent = text;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+// Hamburger toggle
+hamburger.addEventListener('click', ()=>{ sidebar.classList.toggle('collapsed'); });
+
+// Create new chat
+function createChat(name){
+    const id = Date.now().toString();
+    chats.push({id, name:name||`Chat ${chats.length+1}`, messages:[]});
+    renderChatList();
+    openChat(id);
 }
 
-function renderChatList() {
+// Render chat list
+function renderChatList(){
     chatList.innerHTML = '';
-    chats.forEach(chat=>{
+    chats.forEach(c=>{
         const div = document.createElement('div');
-        div.classList.add('chat-item');
-        div.innerHTML = `<span>${chat.name}</span><span class="delete">🗑️</span>`;
-        div.querySelector('span:first-child').addEventListener('click', ()=>{
-            activeChatId = chat.id;
-            loadChat(chat.id);
-            if(window.innerWidth <=700) sidebar.classList.remove('open');
-        });
-        div.querySelector('.delete').addEventListener('click', (e)=>{
-            e.stopPropagation();
-            chats = chats.filter(c=>c.id!==chat.id);
-            if(activeChatId===chat.id) { activeChatId=null; messages.innerHTML=''; }
-            renderChatList();
-        });
+        div.className='chat-item';
+        div.innerHTML=`<span>${c.name}</span><button onclick="deleteChat('${c.id}')">🗑</button>`;
+        div.addEventListener('click',()=>openChat(c.id));
         chatList.appendChild(div);
     });
 }
 
-function loadChat(id){
-    const chat = chats.find(c=>c.id===id);
+// Delete chat
+window.deleteChat = function(id){
+    chats = chats.filter(c=>c.id!==id);
+    if(currentChatId===id) currentChatId=null;
+    renderChatList();
+    renderMessages();
+}
+
+// Open chat
+function openChat(id){
+    currentChatId=id;
+    renderMessages();
+}
+
+// Render messages
+function renderMessages(){
     messages.innerHTML='';
-    if(chat){
-        chat.messages.forEach(m=>addMessage(m.text, m.sender));
+    if(!currentChatId) return;
+    const chat = chats.find(c=>c.id===currentChatId);
+    chat.messages.slice().reverse().forEach(m=>{
+        addMessageToDOM(m.text,m.sender,false);
+    });
+}
+
+// Add message
+function addMessageToDOM(text,sender,save=true){
+    const div=document.createElement('div');
+    div.classList.add('message',sender);
+    div.textContent=text;
+    messages.prepend(div);
+    if(currentChatId && save){
+        const chat=chats.find(c=>c.id===currentChatId);
+        chat.messages.push({text,sender});
     }
 }
 
+// Send message
 async function sendMessage(){
-    const text = input.value.trim();
+    const text=input.value.trim();
     if(!text) return;
-    if(!activeChatId){
-        const id = Date.now();
-        chats.push({id, name:`Chat ${chats.length+1}`, messages:[]});
-        activeChatId=id;
-        renderChatList();
-    }
-    const chat = chats.find(c=>c.id===activeChatId);
-    chat.messages.push({text, sender:'user'});
-    addMessage(text,'user');
+    if(!currentChatId) createChat();
+    addMessageToDOM(text,'user');
     input.value='';
     try{
-        const response = await window.GingerAI.ask(text);
-        chat.messages.push({text:response,sender:'ginger'});
-        addMessage(response,'ginger');
-    }catch(e){
-        addMessage("Error: GingerAI unavailable.",'ginger');
-    }
+        const response=await window.GingerAI.ask(text);
+        addMessageToDOM(response,'ginger');
+    }catch(e){ addMessageToDOM("Error: GingerAI unavailable.",'ginger'); }
 }
 
-sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', e=>{if(e.key==='Enter') sendMessage();});
-hamburger.addEventListener('click', ()=>{sidebar.classList.toggle('open');});
-newChatBtn.addEventListener('click', ()=>{
-    const id = Date.now();
-    chats.push({id, name:`Chat ${chats.length+1}`, messages:[]});
-    activeChatId=id;
-    loadChat(id);
-    renderChatList();
-});
+sendBtn.addEventListener('click',sendMessage);
+input.addEventListener('keydown',e=>{if(e.key==='Enter')sendMessage();});
+newChatBtn.addEventListener('click',()=>createChat());
 </script>
-
 </body>
 </html>
