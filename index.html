@@ -6,7 +6,9 @@
 <title>GingerAI Chat</title>
 <style>
   :root {
-    --gradient: linear-gradient(135deg, #ff758c, #ff7eb3, #ffa86d);
+    --gradient: linear-gradient(135deg, #ff9a3c, #ff6f61, #ffb347);
+    --accent: #ff7a00;
+    --light: rgba(255, 255, 255, 0.15);
   }
 
   body {
@@ -46,12 +48,13 @@
     padding: 16px;
     font-weight: bold;
     border-bottom: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
   }
 
   #new-chat {
     width: calc(100% - 32px);
     margin: 10px 16px;
-    background: rgba(255,255,255,0.2);
+    background: var(--accent);
     border: none;
     color: #fff;
     padding: 10px;
@@ -60,7 +63,7 @@
     transition: background 0.2s;
   }
   #new-chat:hover {
-    background: rgba(255,255,255,0.3);
+    background: #ff9226;
   }
 
   #chat-list {
@@ -87,6 +90,28 @@
     cursor: pointer;
   }
 
+  /* Sidebar toggle button */
+  #toggle-sidebar {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: var(--accent);
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    z-index: 11;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: left 0.3s ease, background 0.3s ease;
+  }
+  #toggle-sidebar:hover {
+    background: #ff9226;
+  }
+  #sidebar.open ~ #toggle-sidebar {
+    left: 292px; /* beweegt mee met sidebar */
+  }
+
   /* Main area */
   #main {
     flex: 1;
@@ -94,23 +119,6 @@
     flex-direction: column;
     width: 100%;
     position: relative;
-  }
-
-  #topbar {
-    display: flex;
-    align-items: center;
-    background: rgba(255,255,255,0.15);
-    padding: 10px 15px;
-    backdrop-filter: blur(8px);
-  }
-
-  #toggle-sidebar {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    margin-right: 10px;
   }
 
   #chat-box {
@@ -142,7 +150,7 @@
     display: flex;
     align-items: center;
     padding: 10px;
-    background: rgba(255,255,255,0.1);
+    background: var(--light);
     backdrop-filter: blur(8px);
     position: sticky;
     bottom: 0;
@@ -158,7 +166,7 @@
   }
 
   #send-btn {
-    background: rgba(255,255,255,0.2);
+    background: var(--accent);
     border: none;
     color: #fff;
     padding: 10px 16px;
@@ -168,17 +176,15 @@
     transition: background 0.2s;
   }
   #send-btn:hover {
-    background: rgba(255,255,255,0.3);
+    background: #ff9226;
   }
 
   @media (max-width: 768px) {
     #sidebar {
-      position: fixed;
-      height: 100%;
       width: 250px;
     }
-    #main {
-      width: 100%;
+    #sidebar.open ~ #toggle-sidebar {
+      left: 262px;
     }
   }
 </style>
@@ -193,12 +199,9 @@
   <ul id="chat-list"></ul>
 </div>
 
-<div id="main">
-  <div id="topbar">
-    <button id="toggle-sidebar">☰</button>
-    <span>GingerAI</span>
-  </div>
+<button id="toggle-sidebar">☰</button>
 
+<div id="main">
   <div id="chat-box"></div>
 
   <div id="input-area">
@@ -238,7 +241,10 @@ function renderChatList() {
       delete chats[id];
       saveChats();
       renderChatList();
-      if (id === currentChatId) newChat();
+      if (id === currentChatId) {
+        currentChatId = null;
+        chatBox.innerHTML = "";
+      }
     };
     li.appendChild(del);
     chatList.appendChild(li);
@@ -272,7 +278,11 @@ function addMessage(text, sender) {
 async function sendMessage() {
   const text = messageInput.value.trim();
   if (!text) return;
-  if (!currentChatId) newChat();
+
+  // maak pas een nieuwe chat bij het eerste bericht
+  if (!currentChatId) {
+    newChat();
+  }
 
   addMessage(text, "user");
   chats[currentChatId].messages.push({ text, sender: "user" });
@@ -282,7 +292,12 @@ async function sendMessage() {
   addMessage(reply, "ai");
   chats[currentChatId].messages.push({ text: reply, sender: "ai" });
 
+  if (chats[currentChatId].messages.length === 1) {
+    chats[currentChatId].title = text.slice(0, 20) + (text.length > 20 ? "..." : "");
+  }
+
   saveChats();
+  renderChatList();
 }
 
 sendBtn.onclick = sendMessage;
@@ -296,7 +311,6 @@ toggleSidebar.onclick = () => {
 };
 
 renderChatList();
-if (!currentChatId) newChat();
 </script>
 </body>
 </html>
