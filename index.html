@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GingerAI Chat</title>
 <style>
 html, body {
@@ -28,14 +27,14 @@ html, body {
     z-index: 1000;
     padding-top: 10px;
 }
-#sidebar.open {
-    transform: translateX(0);
-}
+#sidebar.open { transform: translateX(0); }
+
 #sidebar-logo {
     width: 60%;
     margin: 10px auto;
     display: block;
 }
+
 #new-chat-btn {
     background: #ff6600;
     color: #fff;
@@ -82,7 +81,7 @@ html, body {
 }
 #hamburger:hover { background: #e65c00; }
 
-/* Chat content */
+/* Chat container */
 #chat-container {
     position: absolute;
     top:0;
@@ -99,6 +98,7 @@ html, body {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    padding: 0;
 }
 
 /* Messages */
@@ -108,10 +108,13 @@ html, body {
     padding: 10px;
     font-size: 1em;
     background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 .message { margin:5px 0; }
-.user { color: #0066cc; }
-.ginger { color: #cc6600; }
+.user { color: #0066cc; text-align:right; }
+.ginger { color: #cc6600; text-align:left; }
 
 /* Input */
 #input-container {
@@ -123,13 +126,13 @@ html, body {
 }
 #message-input {
     flex:1;
-    padding:8px;
+    padding:10px;
     border-radius:5px;
     border:1px solid #ccc;
     font-size:1em;
 }
 #send-btn {
-    padding:8px 12px;
+    padding:10px 12px;
     background:#ff6600;
     color:#fff;
     border-radius:5px;
@@ -140,30 +143,27 @@ html, body {
 /* Desktop styles */
 @media(min-width:701px){
     #sidebar { transform: translateX(0); position: relative; }
-    #hamburger { display: none; }
-    #chat-container { margin-left: 240px; height: calc(100% - 40px); top: 20px; bottom: 20px; }
+    #chat-container { margin-left: 240px; top: 20px; bottom: 20px; }
 }
 
 /* Mobile styles */
 @media(max-width:700px){
-    #chat-container {
-        width: 100%;
-        border-radius: 0;
-    }
-    #messages { font-size:0.85em; padding:6px; }
+    #chat-container { width: 100%; border-radius: 0; }
+    #messages { font-size:1.1em; padding:10px; text-align:center; }
     #input-container { padding:4px; }
+    #message-input { font-size:1.1em; }
 }
 </style>
 </head>
 <body>
 
+<div id="hamburger">&#9776;</div>
+
 <div id="sidebar">
-    <img src="assets/logo.png" id="sidebar-logo" alt="Logo">
-    <button id="new-chat-btn">New Chat <span style="margin-left:5px; font-size:1.1em;">&#x1F5D1;</span></button>
+    <img src="assets/logo.png" id="sidebar-logo">
+    <button id="new-chat-btn">New Chat 🗑️</button>
     <div id="chat-list"></div>
 </div>
-
-<div id="hamburger">&#9776;</div>
 
 <div id="chat-container">
     <div id="messages"></div>
@@ -176,88 +176,88 @@ html, body {
 <script src="train_gingerai.js"></script>
 <script>
 let chats = [];
-let currentChat = null;
+let currentChatIndex = null;
 
 const sidebar = document.getElementById('sidebar');
+const hamburger = document.getElementById('hamburger');
+const newChatBtn = document.getElementById('new-chat-btn');
+const chatList = document.getElementById('chat-list');
 const messagesEl = document.getElementById('messages');
-const chatListEl = document.getElementById('chat-list');
 const input = document.getElementById('message-input');
 const sendBtn = document.getElementById('send-btn');
-const newChatBtn = document.getElementById('new-chat-btn');
-const hamburger = document.getElementById('hamburger');
 
-function addMessage(text, sender){
-    const div = document.createElement('div');
-    div.classList.add('message', sender);
-    div.textContent = text;
-    messagesEl.appendChild(div);
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+// Hamburger toggle
+hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+});
+
+// Create new chat
+function createNewChat() {
+    const newChat = [];
+    chats.push(newChat);
+    currentChatIndex = chats.length - 1;
+    renderChatList();
+    renderMessages();
 }
+newChatBtn.addEventListener('click', createNewChat);
 
-function renderChatList(){
-    chatListEl.innerHTML = '';
-    chats.forEach((chat, idx)=>{
+// Render sidebar chat list
+function renderChatList() {
+    chatList.innerHTML = '';
+    chats.forEach((chat, i) => {
         const div = document.createElement('div');
         div.classList.add('chat-item');
-        div.innerHTML = `<span>${chat.name}</span> <span style="cursor:pointer;color:red;" onclick="deleteChat(${idx})">&#x1F5D1;</span>`;
-        div.addEventListener('click',()=>loadChat(idx));
-        chatListEl.appendChild(div);
+        div.innerHTML = `<span>Chat ${i+1}</span><span style="cursor:pointer;" onclick="deleteChat(${i})">🗑️</span>`;
+        div.addEventListener('click', () => {
+            currentChatIndex = i;
+            renderMessages();
+        });
+        chatList.appendChild(div);
     });
 }
 
-function createChat(){
-    const name = `Chat ${chats.length+1}`;
-    const chat = {name, messages:[]};
-    chats.push(chat);
-    currentChat = chats.length-1;
+// Delete chat
+window.deleteChat = function(i) {
+    chats.splice(i,1);
+    if(currentChatIndex>=chats.length) currentChatIndex=chats.length-1;
     renderChatList();
     renderMessages();
 }
 
-function loadChat(idx){
-    currentChat = idx;
-    renderMessages();
-    sidebar.classList.remove('open');
-}
-
-function deleteChat(idx){
-    if(currentChat===idx) currentChat=null;
-    chats.splice(idx,1);
-    renderChatList();
-    renderMessages();
-}
-
-function renderMessages(){
+// Render messages
+function renderMessages() {
     messagesEl.innerHTML = '';
-    if(currentChat===null) return;
-    chats[currentChat].messages.forEach(m=>addMessage(m.text,m.sender));
+    if(currentChatIndex===null || !chats[currentChatIndex]) return;
+    chats[currentChatIndex].forEach(msg=>{
+        const div = document.createElement('div');
+        div.classList.add('message', msg.sender);
+        div.textContent = msg.text;
+        messagesEl.appendChild(div);
+    });
+    messagesEl.scrollTop = messagesEl.scrollHeight;
 }
 
-async function sendMessage(){
+// Send message
+async function sendMessage() {
     const text = input.value.trim();
     if(!text) return;
+    if(currentChatIndex===null) createNewChat();
+    chats[currentChatIndex].push({sender:'user',text});
     input.value='';
-    if(currentChat===null) createChat();
-    chats[currentChat].messages.push({text,sender:'user'});
-    addMessage(text,'user');
-
-    try{
+    renderMessages();
+    try {
         const response = await window.GingerAI.ask(text);
-        chats[currentChat].messages.push({text:response, sender:'ginger'});
-        addMessage(response,'ginger');
-    }catch(e){
-        const err = "Error: GingerAI unavailable.";
-        chats[currentChat].messages.push({text:err,sender:'ginger'});
-        addMessage(err,'ginger');
+        chats[currentChatIndex].push({sender:'ginger',text:response});
+        renderMessages();
+    } catch(e){
+        chats[currentChatIndex].push({sender:'ginger',text:'Error: GingerAI unavailable.'});
+        renderMessages();
     }
-    renderChatList();
 }
 
-sendBtn.addEventListener('click',sendMessage);
-input.addEventListener('keydown',e=>{if(e.key==='Enter') sendMessage();});
-newChatBtn.addEventListener('click',createChat);
-hamburger.addEventListener('click',()=>sidebar.classList.toggle('open'));
-</script>
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e=>{if(e.key==='Enter') sendMessage();});
 
+</script>
 </body>
 </html>
