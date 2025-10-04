@@ -52,12 +52,19 @@
       justify-content: space-between;
       align-items: center;
       cursor: pointer;
+      transition: background 0.2s;
+    }
+    .chat-item.active {
+      background: rgba(255,255,255,0.4);
     }
     .chat-item:hover {
       background: rgba(255,255,255,0.3);
     }
     .chat-item span {
       flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .chat-item button {
       background: none;
@@ -156,9 +163,7 @@
 
   <!-- Chat area -->
   <div id="chat-container">
-    <div id="messages">
-      <div class="message ginger">Hello! I'm GingerAI. Ask me anything.</div>
-    </div>
+    <div id="messages"></div>
     <div id="input-container">
       <input type="text" id="message-input" placeholder="Type your message...">
       <button id="send-btn">Send</button>
@@ -176,6 +181,12 @@
     let chats = JSON.parse(localStorage.getItem('ginger_chats') || '[]');
     let currentChatIndex = 0;
 
+    // Initialize first chat if none exists
+    if (chats.length === 0) {
+      chats.push({ title: "New Chat", messages: [{sender: "ginger", text: "Hello! I'm GingerAI. Ask me anything."}] });
+      saveChats();
+    }
+
     function saveChats() {
       localStorage.setItem('ginger_chats', JSON.stringify(chats));
     }
@@ -184,27 +195,34 @@
       chatList.innerHTML = '';
       chats.forEach((chat, i) => {
         const div = document.createElement('div');
-        div.className = 'chat-item';
+        div.className = 'chat-item' + (i === currentChatIndex ? ' active' : '');
         div.innerHTML = `<span>${chat.title || 'Chat ' + (i+1)}</span> <button data-index="${i}">🗑</button>`;
-        div.onclick = () => { currentChatIndex = i; renderChat(); };
-        div.querySelector('button').onclick = e => {
+        div.addEventListener('click', e => {
+          if (e.target.tagName !== 'BUTTON') {
+            currentChatIndex = i;
+            renderChat();
+            loadChatList();
+          }
+        });
+        div.querySelector('button').addEventListener('click', e => {
           e.stopPropagation();
           chats.splice(i, 1);
-          saveChats();
           if (currentChatIndex >= chats.length) currentChatIndex = chats.length - 1;
-          renderChat();
+          saveChats();
+          if (chats.length === 0) {
+            chats.push({ title: "New Chat", messages: [{sender: "ginger", text: "Hello! I'm GingerAI. Ask me anything."}] });
+          }
           loadChatList();
-        };
+          renderChat();
+        });
         chatList.appendChild(div);
       });
     }
 
     function renderChat() {
       messages.innerHTML = '';
-      if (chats.length === 0) {
-        chats.push({ title: 'New Chat', messages: [] });
-      }
-      chats[currentChatIndex].messages.forEach(m => {
+      const currentChat = chats[currentChatIndex];
+      currentChat.messages.forEach(m => {
         const div = document.createElement('div');
         div.classList.add('message', m.sender);
         div.textContent = m.text;
@@ -220,7 +238,14 @@
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
       chats[currentChatIndex].messages.push({ text, sender });
+
+      // update chat title
+      if (sender === 'user' && chats[currentChatIndex].title === 'New Chat') {
+        chats[currentChatIndex].title = text.slice(0, 20) + (text.length > 20 ? '…' : '');
+      }
+
       saveChats();
+      loadChatList();
     }
 
     async function sendMessage() {
@@ -239,7 +264,7 @@
     sendBtn.addEventListener('click', sendMessage);
     input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMessage(); });
     newChatBtn.addEventListener('click', () => {
-      chats.push({ title: 'New Chat', messages: [] });
+      chats.push({ title: "New Chat", messages: [{sender: "ginger", text: "Hello! I'm GingerAI. Ask me anything."}] });
       currentChatIndex = chats.length - 1;
       saveChats();
       loadChatList();
