@@ -2,6 +2,8 @@
 // GingerAI: multilingual, smart sentences, API-ready fallback
 
 window.GingerAI = (function() {
+
+    // Mega trigger database (voorbeeld: kan uitgebreid worden)
     const triggers = [
         { keywords: ["hi","hello","hey"], response: "Hello! How can I help you today?" },
         { keywords: ["hallo","hoi"], response: "Hoi! Hoe gaat het?" },
@@ -19,21 +21,27 @@ window.GingerAI = (function() {
         { keywords: ["love","dating","liefde"], response: "Love is complicated! What's on your mind?" },
         { keywords: ["travel","reizen"], response: "Traveling is amazing. Where would you like to go?" },
         { keywords: ["pets","dieren"], response: "I love pets! Do you have any?" },
-        { keywords: ["books","boeken"], response: "Books open new worlds. What do you like to read?" }
+        { keywords: ["books","boeken"], response: "Books open new worlds. What do you like to read?" },
+        { keywords: ["holiday","vakantie"], response: "Vacations are fun! Where do you want to go?" },
+        { keywords: ["advice","advies"], response: "I can try to give advice. What's your question?" },
+        { keywords: ["tech","technologie"], response: "Tech is evolving fast! What's your favorite gadget?" }
+        // ... kan uitbreiden tot honderden triggers
     ];
 
+    // Eenvoudige taal detectie NL/EN
     function detectLanguage(text) {
-        const nlKeywords = ["hallo","hoi","wat","dank","goed","leuk","spel","film","boeken"];
-        const enKeywords = ["hello","hi","what","thanks","good","nice","game","movie","books"];
+        const nlKeywords = ["hallo","hoi","wat","dank","goed","leuk","spel","film","boeken","advies","vakantie"];
+        const enKeywords = ["hello","hi","what","thanks","good","nice","game","movie","books","advice","holiday"];
         const txt = text.toLowerCase();
         let nlScore = 0, enScore = 0;
         nlKeywords.forEach(k => { if(txt.includes(k)) nlScore++; });
         enKeywords.forEach(k => { if(txt.includes(k)) enScore++; });
         if(nlScore > enScore) return "nl";
         if(enScore > nlScore) return "en";
-        return "en";
+        return "en"; // fallback
     }
 
+    // Slim zinnen genereren (basis)
     function smartResponse(text) {
         const lang = detectLanguage(text);
         for(const t of triggers){
@@ -43,11 +51,14 @@ window.GingerAI = (function() {
                 }
             }
         }
-        return lang === "nl" ? "Sorry, ik weet daar nog niet op te reageren." : "Sorry, I don't know how to respond to that yet.";
+        if(lang === "nl") return "Sorry, ik weet daar nog niet op te reageren.";
+        return "Sorry, I don't know how to respond to that yet.";
     }
 
+    // API hook voorbeeld (kan later uitgebreid)
     async function fetchFact(query) {
         try {
+            // Voorbeeld API (dummy)
             const res = await fetch(`https://api.example.com/fact?q=${encodeURIComponent(query)}`);
             if(!res.ok) return null;
             const data = await res.json();
@@ -59,8 +70,10 @@ window.GingerAI = (function() {
 
     return {
         ask: async function(message) {
+            // Eerst proberen API (indien query herkend)
             const fact = await fetchFact(message);
             if(fact) return fact;
+            // Fallback
             return smartResponse(message);
         }
     };
