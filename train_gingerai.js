@@ -31,7 +31,7 @@ window.GingerAI = (function() {
         enKeywords.forEach(k => { if(txt.includes(k)) enScore++; });
         if(nlScore > enScore) return "nl";
         if(enScore > nlScore) return "en";
-        return "en"; // fallback
+        return "en";
     }
 
     function smartResponse(text) {
@@ -43,8 +43,7 @@ window.GingerAI = (function() {
                 }
             }
         }
-        if(lang === "nl") return "Sorry, ik weet daar nog niet op te reageren.";
-        return "Sorry, I don't know how to respond to that yet.";
+        return lang==="nl"? "Sorry, ik weet daar nog niet op te reageren." : "Sorry, I don't know how to respond to that yet.";
     }
 
     async function fetchFact(query) {
@@ -53,9 +52,7 @@ window.GingerAI = (function() {
             if(!res.ok) return null;
             const data = await res.json();
             return data.fact || null;
-        } catch(e) {
-            return null;
-        }
+        } catch(e) { return null; }
     }
 
     return {
